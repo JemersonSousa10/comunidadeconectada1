@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastrar Serviço - Comunidade Conectada</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/accessibility.css">
+</head>
+<body>
+    <header role="banner">
+        <nav class="navbar" role="navigation" aria-label="Navegação principal">
+            <div class="nav-container">
+                <h1 class="logo">
+                    <a href="index.html" aria-label="Comunidade Conectada">
+                        🌐 Comunidade Conectada
+                    </a>
+                </h1>
+                <ul class="nav-menu">
+                    <li><a href="index.html">Início</a></li>
+                    <li><a href="servicos.html">Serviços</a></li>
+                    <li><a href="dashboard.html">Meu Painel</a></li>
+                    <li><a href="#" id="logoutBtn">Sair</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <main role="main">
+        <section class="auth-section" aria-labelledby="cadastro-servico-title">
+            <div class="auth-container">
+                <div class="auth-card">
+                    <h1 id="cadastro-servico-title">Cadastrar Novo Serviço</h1>
+                    <p class="auth-subtitle">Ofereça seus serviços para a comunidade</p>
+
+                    <form id="servicoForm" class="auth-form">
+                        <div class="form-group">
+                            <label for="nome_servico">Nome do Serviço *</label>
+                            <input 
+                                type="text" 
+                                id="nome_servico" 
+                                name="nome_servico" 
+                                required 
+                                aria-required="true"
+                                placeholder="Ex: Encanador residencial, Aulas de matemática..."
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="categoria">Categoria *</label>
+                            <select id="categoria" name="categoria" required aria-required="true">
+                                <option value="">Selecione uma categoria</option>
+                                <option value="reparos">Reparos Domésticos</option>
+                                <option value="limpeza">Limpeza</option>
+                                <option value="aulas">Aulas Particulares</option>
+                                <option value="cuidados">Cuidados Pessoais</option>
+                                <option value="tecnologia">Tecnologia</option>
+                                <option value="eventos">Eventos</option>
+                                <option value="outros">Outros</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="descricao">Descrição do Serviço *</label>
+                            <textarea 
+                                id="descricao" 
+                                name="descricao" 
+                                rows="4" 
+                                required 
+                                aria-required="true"
+                                placeholder="Descreva detalhadamente o serviço que você oferece..."
+                            ></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="valor">Valor (R$) *</label>
+                            <input 
+                                type="number" 
+                                id="valor" 
+                                name="valor" 
+                                step="0.01" 
+                                min="0" 
+                                required 
+                                aria-required="true"
+                                placeholder="0,00"
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="contato">Contato *</label>
+                            <input 
+                                type="text" 
+                                id="contato" 
+                                name="contato" 
+                                required 
+                                aria-required="true"
+                                placeholder="Telefone, WhatsApp, e-mail..."
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="localizacao">Localização</label>
+                            <input 
+                                type="text" 
+                                id="localizacao" 
+                                name="localizacao" 
+                                placeholder="Bairro, região ou cidade onde atende"
+                            >
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-full" id="submitBtn">
+                            Cadastrar Serviço
+                        </button>
+
+                        <div class="auth-links">
+                            <a href="dashboard.html">← Voltar para o painel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer role="contentinfo">
+        <div class="container">
+            <p>&copy; 2025 Comunidade Conectada. Projeto Integrador II - UNIVESP.</p>
+        </div>
+    </footer>
+
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/services.js"></script>
+    
+    <script>
+        // Verificar autenticação e se é prestador
+        if (!auth.isLoggedIn() || auth.getCurrentUser().tipo !== 'prestador') {
+            utils.showError('Apenas prestadores de serviços podem cadastrar serviços');
+            setTimeout(() => {
+                window.location.href = 'dashboard.html';
+            }, 2000);
+        }
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            auth.logout();
+            window.location.href = 'index.html';
+        });
+
+        // Form submission
+        document.getElementById('servicoForm').addEventListener('submit', handleServiceCreate);
+    </script>
+</body>
+</html>

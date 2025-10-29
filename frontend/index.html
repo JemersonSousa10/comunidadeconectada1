@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comunidade Conectada - Conectando Moradores e Serviços</title>
+    <meta name="description" content="Plataforma para conectar moradores e prestadores de serviços locais">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/accessibility.css">
+</head>
+<body>
+    <header role="banner">
+        <nav class="navbar" role="navigation" aria-label="Navegação principal">
+            <div class="nav-container">
+                <h1 class="logo">
+                    <a href="index.html" aria-label="Comunidade Conectada - Página inicial">
+                        🌐 Comunidade Conectada
+                    </a>
+                </h1>
+                <ul class="nav-menu">
+                    <li><a href="index.html" aria-current="page">Início</a></li>
+                    <li><a href="servicos.html">Serviços</a></li>
+                    <li><a href="login.html">Login</a></li>
+                    <li><a href="cadastro.html">Cadastrar</a></li>
+                </ul>
+                <button class="nav-toggle" aria-label="Abrir menu" aria-expanded="false">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main role="main">
+        <section class="hero" aria-labelledby="hero-title">
+            <div class="hero-content">
+                <h1 id="hero-title">Conectando sua comunidade</h1>
+                <p class="hero-description">
+                    Encontre serviços locais, conheça seus vizinhos e fortaleça a economia do seu bairro 
+                    em uma plataforma simples e acessível.
+                </p>
+                <div class="hero-buttons">
+                    <a href="cadastro.html" class="btn btn-primary">Começar Agora</a>
+                    <a href="servicos.html" class="btn btn-secondary">Ver Serviços</a>
+                </div>
+            </div>
+            <div class="hero-image" aria-hidden="true">
+                <div class="community-illustration"></div>
+            </div>
+        </section>
+
+        <section class="features" aria-labelledby="features-title">
+            <div class="container">
+                <h2 id="features-title" class="section-title">Como funciona</h2>
+                <div class="features-grid">
+                    <div class="feature-card" role="article">
+                        <div class="feature-icon">👤</div>
+                        <h3>Cadastre-se</h3>
+                        <p>Crie sua conta como morador ou prestador de serviços em poucos minutos</p>
+                    </div>
+                    <div class="feature-card" role="article">
+                        <div class="feature-icon">🔍</div>
+                        <h3>Encontre Serviços</h3>
+                        <p>Busque por serviços locais usando filtros por categoria e localização</p>
+                    </div>
+                    <div class="feature-card" role="article">
+                        <div class="feature-icon">💬</div>
+                        <h3>Conecte-se</h3>
+                        <p>Entre em contato diretamente com prestadores de serviços da sua região</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="stats" aria-labelledby="stats-title">
+            <div class="container">
+                <h2 id="stats-title" class="section-title">Nossa comunidade</h2>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span class="stat-number" id="services-count">0</span>
+                        <span class="stat-label">Serviços Cadastrados</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="users-count">0</span>
+                        <span class="stat-label">Usuários Ativos</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="categories-count">0</span>
+                        <span class="stat-label">Categorias</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer role="contentinfo">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Comunidade Conectada</h3>
+                    <p>Conectando moradores e serviços locais para construir comunidades mais fortes.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Links Rápidos</h4>
+                    <ul>
+                        <li><a href="index.html">Início</a></li>
+                        <li><a href="servicos.html">Serviços</a></li>
+                        <li><a href="login.html">Login</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Suporte</h4>
+                    <ul>
+                        <li><a href="#">Ajuda</a></li>
+                        <li><a href="#">Contato</a></li>
+                        <li><a href="#">Termos de Uso</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Comunidade Conectada. Projeto Integrador II - UNIVESP.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        // Carregar estatísticas
+        async function loadStats() {
+            try {
+                const services = await api.get('/api/services');
+                const servicesCount = services.services ? services.services.length : 0;
+                
+                document.getElementById('services-count').textContent = servicesCount;
+                document.getElementById('users-count').textContent = servicesCount + 50; // Simulado
+                document.getElementById('categories-count').textContent = '12+'; // Simulado
+            } catch (error) {
+                console.error('Erro ao carregar estatísticas:', error);
+            }
+        }
+
+        // Menu mobile
+        document.querySelector('.nav-toggle').addEventListener('click', function() {
+            this.classList.toggle('active');
+            document.querySelector('.nav-menu').classList.toggle('active');
+        });
+
+        loadStats();
+    </script>
+</body>
+</html>

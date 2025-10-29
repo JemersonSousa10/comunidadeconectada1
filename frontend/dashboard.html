@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Comunidade Conectada</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/accessibility.css">
+</head>
+<body>
+    <header role="banner">
+        <nav class="navbar" role="navigation" aria-label="Navegação principal">
+            <div class="nav-container">
+                <h1 class="logo">
+                    <a href="index.html" aria-label="Comunidade Conectada">
+                        🌐 Comunidade Conectada
+                    </a>
+                </h1>
+                <ul class="nav-menu">
+                    <li><a href="index.html">Início</a></li>
+                    <li><a href="servicos.html">Serviços</a></li>
+                    <li><a href="dashboard.html" aria-current="page">Meu Painel</a></li>
+                    <li><a href="#" id="logoutBtn">Sair</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <main role="main">
+        <section class="dashboard-section" aria-labelledby="dashboard-title">
+            <div class="container">
+                <h1 id="dashboard-title">Meu Painel</h1>
+                
+                <div id="userWelcome" class="welcome-banner" role="status">
+                    <!-- Mensagem de boas-vindas será preenchida via JavaScript -->
+                </div>
+
+                <div class="dashboard-grid">
+                    <!-- Para Prestadores de Serviço -->
+                    <div id="prestadorSection" style="display: none;">
+                        <div class="dashboard-card">
+                            <h2>Meus Serviços</h2>
+                            <p>Gerencie os serviços que você oferece</p>
+                            <div id="myServicesList" class="services-mini-list">
+                                <!-- Lista de serviços do prestador -->
+                            </div>
+                            <div class="card-actions">
+                                <a href="cadastro-servico.html" class="btn btn-primary">
+                                    + Adicionar Serviço
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="dashboard-card">
+                            <h2>Estatísticas</h2>
+                            <div class="stats-mini">
+                                <div class="stat-mini">
+                                    <span class="stat-number" id="totalServices">0</span>
+                                    <span class="stat-label">Serviços Ativos</span>
+                                </div>
+                                <div class="stat-mini">
+                                    <span class="stat-number" id="totalViews">0</span>
+                                    <span class="stat-label">Visualizações</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Para Moradores -->
+                    <div id="moradorSection" style="display: none;">
+                        <div class="dashboard-card">
+                            <h2>Serviços Favoritos</h2>
+                            <p>Seus serviços salvos para contatar depois</p>
+                            <div id="favoritesList" class="services-mini-list">
+                                <p>Nenhum serviço favoritado ainda.</p>
+                            </div>
+                        </div>
+
+                        <div class="dashboard-card">
+                            <h2>Buscar Serviços</h2>
+                            <p>Encontre profissionais perto de você</p>
+                            <a href="servicos.html" class="btn btn-primary">
+                                Explorar Serviços
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Perfil do Usuário -->
+                    <div class="dashboard-card profile-card">
+                        <h2>Meu Perfil</h2>
+                        <div id="profileInfo">
+                            <!-- Informações do perfil serão preenchidas via JavaScript -->
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn btn-outline" onclick="editarPerfil()">
+                                Editar Perfil
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer role="contentinfo">
+        <div class="container">
+            <p>&copy; 2025 Comunidade Conectada. Projeto Integrador II - UNIVESP.</p>
+        </div>
+    </footer>
+
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/services.js"></script>
+    
+    <script>
+        // Verificar autenticação
+        if (!auth.isLoggedIn()) {
+            window.location.href = 'login.html';
+        }
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            auth.logout();
+            window.location.href = 'index.html';
+        });
+
+        // Carregar dados do dashboard
+        async function loadDashboard() {
+            try {
+                const user = auth.getCurrentUser();
+                if (!user) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                // Atualizar mensagem de boas-vindas
+                document.getElementById('userWelcome').innerHTML = `
+                    <h2>Olá, ${user.nome}!</h2>
+                    <p>Bem-vindo(a) de volta à Comunidade Conectada</p>
+                `;
+
+                // Mostrar seção baseada no tipo de usuário
+                if (user.tipo === 'prestador') {
+                    document.getElementById('prestadorSection').style.display = 'block';
+                    await loadPrestadorData();
+                } else {
+                    document.getElementById('moradorSection').style.display = 'block';
+                }
+
+                // Carregar informações do perfil
+                await loadProfileInfo();
+
+            } catch (error) {
+                console.error('Erro ao carregar dashboard:', error);
+                utils.showError('Erro ao carregar dados do painel');
+            }
+        }
+
+        async function loadPrestadorData() {
+            try {
+                const myServices = await services.getMyServices();
+                const servicesList = document.getElementById('myServicesList');
+                
+                if (myServices.services && myServices.services.length > 0) {
+                    servicesList.innerHTML = myServices.services.slice(0, 3).map(service => `
+                        <div class="service-mini-item">
+                            <h4>${service.nome_servico}</h4>
+                            <p>R$ ${service.valor}</p>
+                        </div>
+                    `).join('');
+                    
+                    document.getElementById('totalServices').textContent = myServices.services.length;
+                } else {
+                    servicesList.innerHTML = '<p>Nenhum serviço cadastrado ainda.</p>';
+                }
+            } catch (error) {
+                console.error('Erro ao carregar serviços do prestador:', error);
+            }
+        }
+
+        async function loadProfileInfo() {
+            try {
+                const profile = await auth.getProfile();
+                document.getElementById('profileInfo').innerHTML = `
+                    <p><strong>Nome:</strong> ${profile.user.nome}</p>
+                    <p><strong>E-mail:</strong> ${profile.user.email}</p>
+                    <p><strong>Tipo:</strong> ${profile.user.tipo === 'prestador' ? 'Prestador de Serviços' : 'Morador'}</p>
+                    ${profile.user.endereco ? `<p><strong>Endereço:</strong> ${profile.user.endereco}</p>` : ''}
+                `;
+            } catch (error) {
+                console.error('Erro ao carregar perfil:', error);
+            }
+        }
+
+        function editarPerfil() {
+            utils.showMessage('Funcionalidade em desenvolvimento', 'info');
+        }
+
+        // Carregar dashboard quando a página carregar
+        document.addEventListener('DOMContentLoaded', loadDashboard);
+    </script>
+</body>
+</html>

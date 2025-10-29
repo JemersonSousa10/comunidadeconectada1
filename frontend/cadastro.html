@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro - Comunidade Conectada</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/accessibility.css">
+</head>
+<body>
+    <header role="banner">
+        <nav class="navbar" role="navigation" aria-label="Navegação principal">
+            <div class="nav-container">
+                <h1 class="logo">
+                    <a href="index.html" aria-label="Comunidade Conectada">
+                        🌐 Comunidade Conectada
+                    </a>
+                </h1>
+                <ul class="nav-menu">
+                    <li><a href="index.html">Início</a></li>
+                    <li><a href="servicos.html">Serviços</a></li>
+                    <li><a href="login.html">Login</a></li>
+                    <li><a href="cadastro.html" aria-current="page">Cadastrar</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <main role="main">
+        <section class="auth-section" aria-labelledby="cadastro-title">
+            <div class="auth-container">
+                <div class="auth-card">
+                    <h1 id="cadastro-title">Criar sua conta</h1>
+                    <p class="auth-subtitle">Junte-se à nossa comunidade</p>
+
+                    <form id="cadastroForm" class="auth-form">
+                        <div class="form-group">
+                            <label for="nome">Nome completo *</label>
+                            <input 
+                                type="text" 
+                                id="nome" 
+                                name="nome" 
+                                required 
+                                aria-required="true"
+                                aria-describedby="nome-help"
+                            >
+                            <small id="nome-help" class="help-text">Seu nome completo como deseja ser chamado</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email">E-mail *</label>
+                            <input 
+                                type="email" 
+                                id="email" 
+                                name="email" 
+                                required 
+                                aria-required="true"
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="senha">Senha *</label>
+                            <input 
+                                type="password" 
+                                id="senha" 
+                                name="senha" 
+                                required 
+                                aria-required="true"
+                                minlength="6"
+                                aria-describedby="senha-help"
+                            >
+                            <small id="senha-help" class="help-text">Mínimo de 6 caracteres</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="confirmarSenha">Confirmar senha *</label>
+                            <input 
+                                type="password" 
+                                id="confirmarSenha" 
+                                name="confirmarSenha" 
+                                required 
+                                aria-required="true"
+                            >
+                        </div>
+
+                        <fieldset class="form-group">
+                            <legend>Tipo de conta *</legend>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input 
+                                        type="radio" 
+                                        name="tipo" 
+                                        value="morador" 
+                                        checked
+                                        aria-checked="true"
+                                    >
+                                    <span class="radio-custom"></span>
+                                    Morador
+                                </label>
+                                <label class="radio-label">
+                                    <input 
+                                        type="radio" 
+                                        name="tipo" 
+                                        value="prestador"
+                                        aria-checked="false"
+                                    >
+                                    <span class="radio-custom"></span>
+                                    Prestador de Serviços
+                                </label>
+                            </div>
+                        </fieldset>
+
+                        <div class="form-group">
+                            <label for="cep">CEP</label>
+                            <div class="input-with-button">
+                                <input 
+                                    type="text" 
+                                    id="cep" 
+                                    name="cep" 
+                                    placeholder="00000-000"
+                                    maxlength="9"
+                                >
+                                <button type="button" id="buscarCep" class="btn btn-outline">
+                                    Buscar
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="endereco">Endereço</label>
+                            <input 
+                                type="text" 
+                                id="endereco" 
+                                name="endereco" 
+                                placeholder="Endereço será preenchido automaticamente"
+                                aria-describedby="endereco-help"
+                            >
+                            <small id="endereco-help" class="help-text">Preenchido automaticamente pelo CEP</small>
+                        </div>
+
+                        <div class="form-group checkbox-group">
+                            <label class="checkbox-label">
+                                <input 
+                                    type="checkbox" 
+                                    id="termos" 
+                                    name="termos" 
+                                    required
+                                    aria-required="true"
+                                >
+                                <span class="checkbox-custom"></span>
+                                Concordo com os <a href="#" target="_blank">Termos de Uso</a> e 
+                                <a href="#" target="_blank">Política de Privacidade</a> *
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-full" id="submitBtn">
+                            Criar conta
+                        </button>
+
+                        <div class="auth-links">
+                            <p>
+                                Já tem uma conta? <a href="login.html">Faça login aqui</a>
+                            </p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer role="contentinfo">
+        <div class="container">
+            <p>&copy; 2025 Comunidade Conectada. Projeto Integrador II - UNIVESP.</p>
+        </div>
+    </footer>
+
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    
+    <script>
+        // Função para buscar CEP
+        async function buscarCEP() {
+            const cepInput = document.getElementById('cep');
+            let cep = cepInput.value;
+            
+            // Limpar e formatar CEP
+            cep = cep.replace(/\D/g, ''); // Remove não dígitos
+            
+            if (cep.length !== 8) {
+                if (typeof utils !== 'undefined') {
+                    utils.showError('CEP deve ter 8 dígitos');
+                } else {
+                    alert('CEP deve ter 8 dígitos');
+                }
+                return;
+            }
+
+            // Formatar CEP com hífen
+            cep = cep.substring(0, 5) + '-' + cep.substring(5, 8);
+            cepInput.value = cep;
+
+            try {
+                if (typeof utils !== 'undefined') {
+                    utils.showMessage('Buscando CEP...', 'info', 3000);
+                }
+                
+                const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+                
+                if (!response.ok) {
+                    throw new Error('Erro na resposta da API');
+                }
+                
+                const data = await response.json();
+                
+                if (data.erro) {
+                    throw new Error('CEP não encontrado');
+                }
+
+                // Preencher endereço automaticamente
+                const enderecoInput = document.getElementById('endereco');
+                if (data.logradouro && data.bairro && data.localidade) {
+                    enderecoInput.value = `${data.logradouro}, ${data.bairro}, ${data.localidade} - ${data.uf}`;
+                    if (typeof utils !== 'undefined') {
+                        utils.showSuccess('Endereço preenchido automaticamente!');
+                    }
+                } else {
+                    throw new Error('Dados do CEP incompletos');
+                }
+
+            } catch (error) {
+                console.error('Erro ao buscar CEP:', error);
+                
+                if (typeof utils !== 'undefined') {
+                    if (error.message.includes('fetch')) {
+                        utils.showError('Erro de conexão. Verifique sua internet.');
+                    } else if (error.message.includes('não encontrado')) {
+                        utils.showError('CEP não encontrado. Verifique o número.');
+                    } else {
+                        utils.showError('Erro ao buscar CEP. Preencha o endereço manualmente.');
+                    }
+                } else {
+                    alert('Erro ao buscar CEP: ' + error.message);
+                }
+                
+                // Limpar campo em caso de erro
+                document.getElementById('endereco').value = '';
+            }
+        }
+
+        // Função de registro completa
+        async function handleRegister(event) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            
+            // Usar utils se disponível, senão fallback simples
+            if (typeof utils !== 'undefined') {
+                utils.setLoading(submitBtn, true);
+            } else {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Carregando...';
+            }
+
+            try {
+                // Validar senhas
+                const senha = document.getElementById('senha').value;
+                const confirmarSenha = document.getElementById('confirmarSenha').value;
+
+                if (senha !== confirmarSenha) {
+                    throw new Error('As senhas não coincidem');
+                }
+
+                // Validar força da senha
+                if (senha.length < 6) {
+                    throw new Error('A senha deve ter pelo menos 6 caracteres');
+                }
+
+                // Coletar dados do formulário
+                const formData = {
+                    nome: document.getElementById('nome').value,
+                    email: document.getElementById('email').value,
+                    senha: senha,
+                    tipo: document.querySelector('input[name="tipo"]:checked').value,
+                    cep: document.getElementById('cep').value,
+                    endereco: document.getElementById('endereco').value
+                };
+
+                // Validar email
+                if (!formData.email.includes('@')) {
+                    throw new Error('E-mail inválido');
+                }
+
+                // Fazer request de registro
+                let result;
+                if (typeof api !== 'undefined') {
+                    result = await api.post('/auth/register', formData, { public: true });
+                } else {
+                    // Fallback direto com fetch
+                    const response = await fetch('http://localhost:3000/api/auth/register', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(formData)
+                    });
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Erro no cadastro');
+                    }
+                    
+                    result = await response.json();
+                }
+
+                // Salvar autenticação
+                if (typeof auth !== 'undefined') {
+                    auth.setAuth(result.token, result.user);
+                } else {
+                    // Fallback: salvar no localStorage diretamente
+                    localStorage.setItem('authToken', result.token);
+                    localStorage.setItem('currentUser', JSON.stringify(result.user));
+                }
+
+                // Mensagem de sucesso
+                if (typeof utils !== 'undefined') {
+                    utils.showSuccess('Cadastro realizado com sucesso!');
+                } else {
+                    alert('Cadastro realizado com sucesso!');
+                }
+                
+                // Redirecionar para dashboard
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 1500);
+
+            } catch (error) {
+                console.error('Erro no registro:', error);
+                
+                // Mensagem de erro
+                if (typeof utils !== 'undefined') {
+                    if (error.response && error.response.data && error.response.data.error) {
+                        utils.showError(error.response.data.error);
+                    } else if (error.message) {
+                        utils.showError(error.message);
+                    } else {
+                        utils.showError('Erro ao realizar cadastro');
+                    }
+                } else {
+                    alert('Erro ao realizar cadastro: ' + error.message);
+                }
+            } finally {
+                // Restaurar botão
+                if (typeof utils !== 'undefined') {
+                    utils.setLoading(submitBtn, false);
+                } else {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Criar conta';
+                }
+            }
+        }
+
+        // Formatação automática do CEP
+        document.getElementById('cep').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 5) {
+                value = value.substring(0,5) + '-' + value.substring(5,8);
+            }
+            e.target.value = value;
+        });
+
+        // Buscar CEP quando clicar no botão
+        document.getElementById('buscarCep').addEventListener('click', buscarCEP);
+        
+        // Buscar CEP quando pressionar Enter no campo CEP
+        document.getElementById('cep').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                buscarCEP();
+            }
+        });
+
+        // Registrar o event listener para o formulário
+        document.getElementById('cadastroForm').addEventListener('submit', handleRegister);
+
+        // Debug: verificar se as funções estão carregadas
+        console.log('handleRegister carregada:', typeof handleRegister);
+        console.log('utils carregado:', typeof utils);
+        console.log('api carregado:', typeof api);
+    </script>
+</body>
+</html>

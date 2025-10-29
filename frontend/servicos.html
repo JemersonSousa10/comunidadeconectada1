@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Serviços - Comunidade Conectada</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/accessibility.css">
+</head>
+<body>
+    <header role="banner">
+        <nav class="navbar" role="navigation" aria-label="Navegação principal">
+            <div class="nav-container">
+                <h1 class="logo">
+                    <a href="index.html" aria-label="Comunidade Conectada">
+                        🌐 Comunidade Conectada
+                    </a>
+                </h1>
+                <ul class="nav-menu">
+                    <li><a href="index.html">Início</a></li>
+                    <li><a href="servicos.html" aria-current="page">Serviços</a></li>
+                    <li><a href="login.html">Login</a></li>
+                    <li><a href="cadastro.html">Cadastrar</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <main role="main">
+        <section class="services-hero" aria-labelledby="services-title">
+            <div class="container">
+                <h1 id="services-title">Serviços Disponíveis</h1>
+                <p class="hero-description">Encontre os melhores serviços perto de você</p>
+            </div>
+        </section>
+
+        <section class="filters-section" aria-labelledby="filters-title">
+            <div class="container">
+                <div class="filters-container">
+                    <div class="search-box">
+                        <label for="searchInput" class="sr-only">Buscar serviços</label>
+                        <input 
+                            type="text" 
+                            id="searchInput" 
+                            placeholder="Digite o nome do serviço, categoria..."
+                            aria-describedby="search-help"
+                        >
+                        <button id="searchBtn" class="btn btn-primary">
+                            🔍 Buscar
+                        </button>
+                    </div>
+                    
+                    <div class="filters-row">
+                        <div class="filter-group">
+                            <label for="categoryFilter">Categoria</label>
+                            <select id="categoryFilter">
+                                <option value="">Todas as categorias</option>
+                                <option value="reparos">Reparos Domésticos</option>
+                                <option value="limpeza">Limpeza</option>
+                                <option value="aulas">Aulas Particulares</option>
+                                <option value="cuidados">Cuidados Pessoais</option>
+                                <option value="tecnologia">Tecnologia</option>
+                                <option value="eventos">Eventos</option>
+                                <option value="outros">Outros</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="sortFilter">Ordenar por</label>
+                            <select id="sortFilter">
+                                <option value="recentes">Mais recentes</option>
+                                <option value="antigos">Mais antigos</option>
+                                <option value="valor_asc">Menor valor</option>
+                                <option value="valor_desc">Maior valor</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="services-section" aria-labelledby="services-list-title">
+            <div class="container">
+                <h2 id="services-list-title" class="sr-only">Lista de serviços</h2>
+                
+                <div id="loadingIndicator" class="loading" aria-live="polite">
+                    Carregando serviços...
+                </div>
+
+                <div id="servicesGrid" class="services-grid" role="list" aria-label="Lista de serviços disponíveis">
+                    <!-- Os serviços serão carregados aqui via JavaScript -->
+                </div>
+
+                <div id="noServicesMessage" class="no-results" style="display: none;">
+                    <p>Nenhum serviço encontrado. Tente ajustar os filtros de busca.</p>
+                </div>
+
+                <div id="loadMoreContainer" class="load-more-container" style="display: none;">
+                    <button id="loadMoreBtn" class="btn btn-outline">
+                        Carregar mais serviços
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer role="contentinfo">
+        <div class="container">
+            <p>&copy; 2025 Comunidade Conectada. Projeto Integrador II - UNIVESP.</p>
+        </div>
+    </footer>
+
+    <!-- Modal de detalhes do serviço -->
+    <div id="serviceModal" class="modal" role="dialog" aria-labelledby="modalTitle" aria-hidden="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Detalhes do Serviço</h2>
+                <button class="modal-close" aria-label="Fechar modal">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Conteúdo do modal será preenchido via JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/services.js"></script>
+    
+    <script>
+        // Carregar serviços ao abrir a página
+        document.addEventListener('DOMContentLoaded', function() {
+            services.loadServices();
+            
+            // Event listeners para filtros
+            document.getElementById('searchBtn').addEventListener('click', () => {
+                services.loadServices();
+            });
+            
+            document.getElementById('searchInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    services.loadServices();
+                }
+            });
+            
+            document.getElementById('categoryFilter').addEventListener('change', () => {
+                services.loadServices();
+            });
+            
+            document.getElementById('sortFilter').addEventListener('change', () => {
+                services.loadServices();
+            });
+            
+            // Modal
+            const modal = document.getElementById('serviceModal');
+            const closeBtn = document.querySelector('.modal-close');
+            
+            closeBtn.addEventListener('click', () => {
+                modal.style.display = 'none';
+                modal.setAttribute('aria-hidden', 'true');
+            });
+            
+            window.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.style.display = 'none';
+                    modal.setAttribute('aria-hidden', 'true');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

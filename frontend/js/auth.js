@@ -1,6 +1,6 @@
 // auth.js - Sistema de Autenticação da Comunidade Conectada
+// VERIFIQUE: Esta deve ser a ÚNICA declaração de API_BASE_URL no arquivo!
 
-// Configuração da API
 const API_BASE_URL = 'https://comunidade-conectada-backend.onrender.com';
 
 // Elementos globais
@@ -75,8 +75,8 @@ async function handleRegister(event) {
 
         console.log('✅ Todas validações passadas, enviando para API...');
 
-        // Fazer requisição para a API
-        const response = await fetch(`${API_BASE_URL}/auth/register`, {
+        // Fazer requisição para a API - CORRIGIDA A ROTA
+        const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -108,7 +108,6 @@ async function handleRegister(event) {
     }
 }
 
-
 // Função de login
 async function handleLogin(event) {
     event.preventDefault();
@@ -137,8 +136,8 @@ async function handleLogin(event) {
 
         console.log('📤 Enviando credenciais para login...');
 
-        // Fazer requisição para a API
-        const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        // Fazer requisição para a API - CORRIGIDA A ROTA
+        const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -183,74 +182,6 @@ async function handleLogin(event) {
     }
 }
 
-// Função de logout
-function handleLogout() {
-    console.log('👋 Realizando logout...');
-    
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    currentUser = null;
-    
-    alert('✅ Logout realizado com sucesso!');
-    window.location.href = 'index.html';
-}
-
-// Verificar estado de autenticação
-function checkAuthState() {
-    const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('user');
-    
-    if (token && userData) {
-        try {
-            currentUser = JSON.parse(userData);
-            console.log('👤 Usuário autenticado:', currentUser);
-            updateUIForAuthState(true);
-        } catch (error) {
-            console.error('❌ Erro ao parsear dados do usuário:', error);
-            clearAuthData();
-        }
-    } else {
-        updateUIForAuthState(false);
-    }
-}
-
-// Atualizar UI baseado no estado de autenticação
-function updateUIForAuthState(isAuthenticated) {
-    // Atualizar navbar
-    const navMenu = document.querySelector('.nav-menu');
-    if (navMenu) {
-        if (isAuthenticated) {
-            // Remover links de login/cadastro
-            const loginLink = navMenu.querySelector('a[href="login.html"]');
-            const cadastroLink = navMenu.querySelector('a[href="cadastro.html"]');
-            
-            if (loginLink) loginLink.parentElement.remove();
-            if (cadastroLink) cadastroLink.parentElement.remove();
-            
-            // Adicionar link de perfil e logout
-            if (!navMenu.querySelector('a[href="#logout"]')) {
-                const user = JSON.parse(localStorage.getItem('user'));
-                const userType = user.tipo === 'prestador' ? 'Prestador' : 'Morador';
-                
-                const profileLi = document.createElement('li');
-                profileLi.innerHTML = `<a href="profile.html">Meu Perfil (${userType})</a>`;
-                
-                const logoutLi = document.createElement('li');
-                logoutLi.innerHTML = '<a href="#" id="logout-link">Sair</a>';
-                
-                navMenu.appendChild(profileLi);
-                navMenu.appendChild(logoutLi);
-                
-                // Adicionar evento de logout
-                document.getElementById('logout-link').addEventListener('click', function(e) {
-                    e.preventDefault();
-                    handleLogout();
-                });
-            }
-        }
-    }
-}
-
 // Função para buscar CEP
 async function buscarCEP() {
     const cepInput = document.getElementById('cep');
@@ -290,87 +221,47 @@ function isValidEmail(email) {
     return emailRegex.test(email);
 }
 
+// Verificar estado de autenticação
+function checkAuthState() {
+    const token = localStorage.getItem('token');
+    const userData = localStorage.getItem('user');
+    
+    if (token && userData) {
+        try {
+            currentUser = JSON.parse(userData);
+            console.log('👤 Usuário autenticado:', currentUser);
+            updateUIForAuthState(true);
+        } catch (error) {
+            console.error('❌ Erro ao parsear dados do usuário:', error);
+            clearAuthData();
+        }
+    } else {
+        updateUIForAuthState(false);
+    }
+}
+
+// Atualizar UI baseado no estado de autenticação
+function updateUIForAuthState(isAuthenticated) {
+    // Implementação conforme necessário
+}
+
+// Função de logout
+function handleLogout() {
+    console.log('👋 Realizando logout...');
+    
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    currentUser = null;
+    
+    alert('✅ Logout realizado com sucesso!');
+    window.location.href = 'index.html';
+}
+
 // Limpar dados de autenticação
 function clearAuthData() {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     currentUser = null;
-}
-
-// Obter token para requisições
-function getAuthToken() {
-    return localStorage.getItem('token');
-}
-
-// Verificar se usuário está autenticado
-function isAuthenticated() {
-    return !!localStorage.getItem('token');
-}
-
-// Obter dados do usuário atual
-function getCurrentUser() {
-    if (!currentUser) {
-        const userData = localStorage.getItem('user');
-        if (userData) {
-            currentUser = JSON.parse(userData);
-        }
-    }
-    return currentUser;
-}
-
-// Verificar se usuário é prestador
-function isPrestador() {
-    const user = getCurrentUser();
-    return user && user.tipo === 'prestador';
-}
-
-// Verificar se usuário é morador
-function isMorador() {
-    const user = getCurrentUser();
-    return user && user.tipo === 'morador';
-}
-
-// Proteger rotas que requerem autenticação
-function requireAuth(redirectTo = 'login.html') {
-    if (!isAuthenticated()) {
-        alert('⚠️ Você precisa estar logado para acessar esta página.');
-        window.location.href = redirectTo;
-        return false;
-    }
-    return true;
-}
-
-// Proteger rotas para prestadores apenas
-function requirePrestador(redirectTo = 'servicos.html') {
-    if (!requireAuth()) return false;
-    
-    if (!isPrestador()) {
-        alert('⚠️ Esta área é exclusiva para prestadores de serviços.');
-        window.location.href = redirectTo;
-        return false;
-    }
-    return true;
-}
-
-// Proteger rotas para moradores apenas
-function requireMorador(redirectTo = 'servicos.html') {
-    if (!requireAuth()) return false;
-    
-    if (!isMorador()) {
-        alert('⚠️ Esta área é exclusiva para moradores.');
-        window.location.href = redirectTo;
-        return false;
-    }
-    return true;
-}
-
-// Redirecionar se já estiver autenticado
-function redirectIfAuthenticated(redirectTo = 'servicos.html') {
-    if (isAuthenticated()) {
-        window.location.href = redirectTo;
-        return true;
-    }
-    return false;
 }
 
 console.log('✅ auth.js carregado com sucesso!');

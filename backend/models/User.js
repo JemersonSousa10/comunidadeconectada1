@@ -2,21 +2,30 @@ const db = require('../config/database');
 const bcrypt = require('bcryptjs');
 
 class User {
-  static async create(userData) {
-    const { nome, email, senha, tipo, cep, endereco } = userData;
-    const hashedPassword = await bcrypt.hash(senha, 10);
-    
-    return new Promise((resolve, reject) => {
-      const sql = `INSERT INTO usuarios (nome, email, senha, tipo, cep, endereco) 
-                   VALUES (?, ?, ?, ?, ?, ?)`;
-      db.execute(sql, [nome, email, hashedPassword, tipo, cep, endereco], 
-        (err, result) => {
-          if (err) reject(err);
-          resolve({ id: result.insertId, nome, email, tipo });
-        }
-      );
-    });
-  }
+   static async create(userData) {
+        // Garantir que campos undefined sejam convertidos para NULL
+        const {
+            nome, email, senha, tipo, 
+            telefone = null, 
+            endereco = null, 
+            cidade = null, 
+            estado = null 
+        } = userData;
+
+        const query = `INSERT INTO usuarios (nome, email, senha, tipo, telefone, endereco, cidade, estado) 
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+        
+        const [result] = await connection.execute(query, [
+            nome, email, senha, tipo, 
+            telefone || null, 
+            endereco || null, 
+            cidade || null, 
+            estado || null
+        ]);
+        
+        return result;
+    }
+
 
   static findByEmail(email) {
     return new Promise((resolve, reject) => {

@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // Função principal de cadastro
 async function handleRegister(event) {
     event.preventDefault();
-    console.log('🚀 Iniciando processo de cadastro...');
+    console.log('🚀 Iniciando cadastro...');
 
     const submitBtn = document.getElementById('submitBtn');
     const originalText = submitBtn.textContent;
@@ -33,13 +33,13 @@ async function handleRegister(event) {
             tipo: document.querySelector('input[name="tipo"]:checked').value,
             telefone: document.getElementById('telefone') ? document.getElementById('telefone').value.trim() : '',
             endereco: document.getElementById('endereco').value.trim(),
-            cidade: document.getElementById('cidade') ? document.getElementById('cidade').value.trim() : '',
-            estado: document.getElementById('estado') ? document.getElementById('estado').value.trim() : ''
+            cidade: document.getElementById('cidade').value.trim(),
+            estado: document.getElementById('estado').value.trim()
         };
 
         console.log('📤 Dados coletados:', formData);
 
-        // Validações
+        // Validações básicas
         if (!formData.nome || !formData.email || !formData.senha || !formData.tipo) {
             throw new Error('Por favor, preencha todos os campos obrigatórios.');
         }
@@ -73,7 +73,7 @@ async function handleRegister(event) {
             throw new Error('Você deve aceitar os termos de uso');
         }
 
-        console.log('✅ Validações passadas, enviando para API...');
+        console.log('✅ Todas validações passadas, enviando para API...');
 
         // Fazer requisição para a API
         const response = await fetch(`${API_BASE_URL}/auth/register`, {
@@ -107,6 +107,7 @@ async function handleRegister(event) {
         submitBtn.disabled = false;
     }
 }
+
 
 // Função de login
 async function handleLogin(event) {

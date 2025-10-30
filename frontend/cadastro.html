@@ -69,7 +69,7 @@
                                 minlength="6"
                                 aria-describedby="senha-help"
                             >
-                            <small id="senha-help" class="help-text">Mínimo de 6 caracteres</small>
+                            <small id="senha-help" class="help-text">Mínimo de 6 caracteres, incluindo letras e números</small>
                         </div>
 
                         <div class="form-group">
@@ -111,6 +111,18 @@
                         </fieldset>
 
                         <div class="form-group">
+                            <label for="telefone">Telefone</label>
+                            <input 
+                                type="tel" 
+                                id="telefone" 
+                                name="telefone" 
+                                placeholder="(11) 99999-9999"
+                                aria-describedby="telefone-help"
+                            >
+                            <small id="telefone-help" class="help-text">Seu telefone para contato</small>
+                        </div>
+
+                        <div class="form-group">
                             <label for="cep">CEP</label>
                             <div class="input-with-button">
                                 <input 
@@ -136,6 +148,30 @@
                                 aria-describedby="endereco-help"
                             >
                             <small id="endereco-help" class="help-text">Preenchido automaticamente pelo CEP</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="cidade">Cidade</label>
+                            <input 
+                                type="text" 
+                                id="cidade" 
+                                name="cidade" 
+                                readonly
+                                aria-describedby="cidade-help"
+                            >
+                            <small id="cidade-help" class="help-text">Preenchido automaticamente pelo CEP</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="estado">Estado</label>
+                            <input 
+                                type="text" 
+                                id="estado" 
+                                name="estado" 
+                                readonly
+                                aria-describedby="estado-help"
+                            >
+                            <small id="estado-help" class="help-text">Preenchido automaticamente pelo CEP</small>
                         </div>
 
                         <div class="form-group checkbox-group">
@@ -179,17 +215,98 @@
     <script src="js/auth.js"></script>
     
     <script>
-        document.getElementById('cadastroForm').addEventListener('submit', handleRegister);
-        document.getElementById('buscarCep').addEventListener('click', buscarCEP);
-        
-        // Formatação automática do CEP
-        document.getElementById('cep').addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\D/g, '');
-            if (value.length > 5) {
-                value = value.substring(0,5) + '-' + value.substring(5,8);
+        // Inicialização quando o DOM estiver carregado
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('✅ Página de cadastro carregada');
+            
+            // Verificar se já está autenticado
+            if (localStorage.getItem('token')) {
+                alert('⚠️ Você já está logado!');
+                window.location.href = 'servicos.html';
+                return;
             }
-            e.target.value = value;
+            
+            // Configurar eventos
+            const cadastroForm = document.getElementById('cadastroForm');
+            const buscarCepBtn = document.getElementById('buscarCep');
+            
+            if (cadastroForm) {
+                cadastroForm.addEventListener('submit', handleRegister);
+                console.log('✅ Evento de submit configurado');
+            }
+            
+            if (buscarCepBtn) {
+                buscarCepBtn.addEventListener('click', buscarCEP);
+                console.log('✅ Evento de CEP configurado');
+            }
+            
+            // Formatação automática do CEP
+            const cepInput = document.getElementById('cep');
+            if (cepInput) {
+                cepInput.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\D/g, '');
+                    if (value.length > 5) {
+                        value = value.substring(0,5) + '-' + value.substring(5,8);
+                    }
+                    e.target.value = value;
+                });
+            }
+            
+            // Validação em tempo real da senha
+            const senhaInput = document.getElementById('senha');
+            if (senhaInput) {
+                senhaInput.addEventListener('input', function() {
+                    validarSenhaEmTempoReal();
+                });
+            }
+            
+            // Validação em tempo real da confirmação de senha
+            const confirmarSenhaInput = document.getElementById('confirmarSenha');
+            if (confirmarSenhaInput) {
+                confirmarSenhaInput.addEventListener('input', function() {
+                    validarConfirmacaoSenha();
+                });
+            }
         });
+        
+        // Validação em tempo real da senha
+        function validarSenhaEmTempoReal() {
+            const senha = document.getElementById('senha').value;
+            const feedback = document.getElementById('senha-help');
+            
+            if (!feedback) return;
+            
+            if (senha.length > 0 && senha.length < 6) {
+                feedback.style.color = '#e74c3c';
+                feedback.textContent = 'A senha precisa ter pelo menos 6 caracteres';
+            } else if (senha.length >= 6 && !(/[a-zA-Z]/.test(senha) && /[0-9]/.test(senha))) {
+                feedback.style.color = '#e74c3c';
+                feedback.textContent = 'A senha precisa conter letras e números';
+            } else if (senha.length >= 6 && /[a-zA-Z]/.test(senha) && /[0-9]/.test(senha)) {
+                feedback.style.color = '#27ae60';
+                feedback.textContent = 'Senha válida!';
+            } else {
+                feedback.style.color = '#666';
+                feedback.textContent = 'Mínimo de 6 caracteres, incluindo letras e números';
+            }
+        }
+        
+        // Validação em tempo real da confirmação de senha
+        function validarConfirmacaoSenha() {
+            const senha = document.getElementById('senha').value;
+            const confirmarSenha = document.getElementById('confirmarSenha').value;
+            const confirmarSenhaInput = document.getElementById('confirmarSenha');
+            
+            if (!confirmarSenhaInput) return;
+            
+            if (confirmarSenha.length > 0 && senha !== confirmarSenha) {
+                confirmarSenhaInput.style.borderColor = '#e74c3c';
+            } else if (confirmarSenha.length > 0 && senha === confirmarSenha) {
+                confirmarSenhaInput.style.borderColor = '#27ae60';
+            } else {
+                confirmarSenhaInput.style.borderColor = '#ddd';
+            }
+        }
     </script>
 </body>
 </html>

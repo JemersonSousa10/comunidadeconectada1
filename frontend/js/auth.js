@@ -1,5 +1,3 @@
-// auth.js - Sistema de Autenticação da Comunidade Conectada
-// VERIFIQUE: Esta deve ser a ÚNICA declaração de API_BASE_URL no arquivo!
 
 const API_BASE_URL = 'https://comunidade-conectada-backend.onrender.com';
 

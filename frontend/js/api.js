@@ -1,6 +1,3 @@
-// Configuração e utilitários para API
-const API_BASE_URL = 'https://comunidade-conectada-backend.onrender.com';
-
 const api = {
     // Headers padrão
     getHeaders: (includeAuth = true) => {
@@ -20,7 +17,8 @@ const api = {
 
     // Handler genérico de requests
     request: async (endpoint, options = {}) => {
-        const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
+        // Usa a API_BASE_URL global definida no auth.js
+        const url = endpoint.startsWith('http') ? endpoint : `${window.API_BASE_URL || API_BASE_URL}${endpoint}`;
         
         const config = {
             headers: api.getHeaders(!options.public),

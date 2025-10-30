@@ -10,33 +10,13 @@ const servicesRoutes = require('./routes/services');
 
 const app = express();
 
-// CORS para produção - ATUALIZE COM SUA URL DA VERCEL
-const allowedOrigins = [
-  'http://localhost:3001',
-  'http://127.0.0.1:3001',
-  'https://comunidadeconectada1.vercel.app',
-  'https://comunidadeconectada1-git-main-jemersons-projects-4f5e2b25.vercel.app',
-  'https://*.vercel.app'
-];
-
+// ✅ CORS CORRIGIDO - Permitindo todas as origens temporariamente
 const corsOptions = {
-  origin: function (origin, callback) {
-    // Permitir requests sem origin
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      console.log('🚫 CORS bloqueado para origem:', origin);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: true, // Permite TODAS as origens (vamos restringir depois)
   credentials: true,
-  optionsSuccessStatus: 200
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 };
-
-// Use corsOptions no app
-app.use(cors(corsOptions));
 
 // Middlewares
 app.use(cors(corsOptions));
@@ -44,7 +24,7 @@ app.use(express.json());
 
 // Log de requests (útil para debug)
 app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path} - Origin: ${req.headers.origin}`);
   next();
 });
 
@@ -71,7 +51,8 @@ app.get('/api/health', async (req, res) => {
         message: 'Comunidade Conectada API está funcionando!',
         timestamp: new Date().toISOString(),
         environment: process.env.NODE_ENV,
-        database: 'Connected'
+        database: 'Connected',
+        cors: 'Enabled'
       });
     });
   } catch (error) {
@@ -93,7 +74,8 @@ app.get('/', (req, res) => {
       health: '/api/health',
       auth: '/api/auth',
       services: '/api/services'
-    }
+    },
+    cors: 'Enabled for all origins'
   });
 });
 
@@ -122,11 +104,11 @@ app.use('*', (req, res) => {
   });
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 
 app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando na porta ${PORT}`);
   console.log(`📱 Ambiente: ${process.env.NODE_ENV}`);
-  console.log(`🌐 Health check: http://localhost:${PORT}/api/health`);
-  console.log(`🎯 Frontend URLs permitidas:`, allowedOrigins);
+  console.log(`🌐 Health check: https://comunidade-conectada-backend.onrender.com/api/health`);
+  console.log(`🔓 CORS: Habilitado para todas as origens`);
 });

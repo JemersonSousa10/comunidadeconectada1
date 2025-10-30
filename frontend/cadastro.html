@@ -132,7 +132,7 @@
                                 type="text" 
                                 id="endereco" 
                                 name="endereco" 
-                                placeholder="Endereço será preenchido automaticamente"
+                                readonly
                                 aria-describedby="endereco-help"
                             >
                             <small id="endereco-help" class="help-text">Preenchido automaticamente pelo CEP</small>
@@ -176,190 +176,12 @@
 
     <script src="js/utils.js"></script>
     <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
     
     <script>
-        // Função para buscar CEP
-        async function buscarCEP() {
-            const cepInput = document.getElementById('cep');
-            let cep = cepInput.value;
-            
-            // Limpar e formatar CEP
-            cep = cep.replace(/\D/g, ''); // Remove não dígitos
-            
-            if (cep.length !== 8) {
-                if (typeof utils !== 'undefined') {
-                    utils.showError('CEP deve ter 8 dígitos');
-                } else {
-                    alert('CEP deve ter 8 dígitos');
-                }
-                return;
-            }
-
-            // Formatar CEP com hífen
-            cep = cep.substring(0, 5) + '-' + cep.substring(5, 8);
-            cepInput.value = cep;
-
-            try {
-                if (typeof utils !== 'undefined') {
-                    utils.showMessage('Buscando CEP...', 'info', 3000);
-                }
-                
-                const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-                
-                if (!response.ok) {
-                    throw new Error('Erro na resposta da API');
-                }
-                
-                const data = await response.json();
-                
-                if (data.erro) {
-                    throw new Error('CEP não encontrado');
-                }
-
-                // Preencher endereço automaticamente
-                const enderecoInput = document.getElementById('endereco');
-                if (data.logradouro && data.bairro && data.localidade) {
-                    enderecoInput.value = `${data.logradouro}, ${data.bairro}, ${data.localidade} - ${data.uf}`;
-                    if (typeof utils !== 'undefined') {
-                        utils.showSuccess('Endereço preenchido automaticamente!');
-                    }
-                } else {
-                    throw new Error('Dados do CEP incompletos');
-                }
-
-            } catch (error) {
-                console.error('Erro ao buscar CEP:', error);
-                
-                if (typeof utils !== 'undefined') {
-                    if (error.message.includes('fetch')) {
-                        utils.showError('Erro de conexão. Verifique sua internet.');
-                    } else if (error.message.includes('não encontrado')) {
-                        utils.showError('CEP não encontrado. Verifique o número.');
-                    } else {
-                        utils.showError('Erro ao buscar CEP. Preencha o endereço manualmente.');
-                    }
-                } else {
-                    alert('Erro ao buscar CEP: ' + error.message);
-                }
-                
-                // Limpar campo em caso de erro
-                document.getElementById('endereco').value = '';
-            }
-        }
-
-        // Função de registro completa
-        async function handleRegister(event) {
-            event.preventDefault();
-            
-            const form = event.target;
-            const submitBtn = form.querySelector('button[type="submit"]');
-            
-            // Usar utils se disponível, senão fallback simples
-            if (typeof utils !== 'undefined') {
-                utils.setLoading(submitBtn, true);
-            } else {
-                submitBtn.disabled = true;
-                submitBtn.textContent = 'Carregando...';
-            }
-
-            try {
-                // Validar senhas
-                const senha = document.getElementById('senha').value;
-                const confirmarSenha = document.getElementById('confirmarSenha').value;
-
-                if (senha !== confirmarSenha) {
-                    throw new Error('As senhas não coincidem');
-                }
-
-                // Validar força da senha
-                if (senha.length < 6) {
-                    throw new Error('A senha deve ter pelo menos 6 caracteres');
-                }
-
-                // Coletar dados do formulário
-                const formData = {
-                    nome: document.getElementById('nome').value,
-                    email: document.getElementById('email').value,
-                    senha: senha,
-                    tipo: document.querySelector('input[name="tipo"]:checked').value,
-                    cep: document.getElementById('cep').value,
-                    endereco: document.getElementById('endereco').value
-                };
-
-                // Validar email
-                if (!formData.email.includes('@')) {
-                    throw new Error('E-mail inválido');
-                }
-
-                // Fazer request de registro
-                let result;
-                if (typeof api !== 'undefined') {
-                    result = await api.post('/auth/register', formData, { public: true });
-                } else {
-                    // Fallback direto com fetch
-                    const response = await fetch('http://localhost:3000/api/auth/register', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(formData)
-                    });
-                    
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.error || 'Erro no cadastro');
-                    }
-                    
-                    result = await response.json();
-                }
-
-                // Salvar autenticação
-                if (typeof auth !== 'undefined') {
-                    auth.setAuth(result.token, result.user);
-                } else {
-                    // Fallback: salvar no localStorage diretamente
-                    localStorage.setItem('authToken', result.token);
-                    localStorage.setItem('currentUser', JSON.stringify(result.user));
-                }
-
-                // Mensagem de sucesso
-                if (typeof utils !== 'undefined') {
-                    utils.showSuccess('Cadastro realizado com sucesso!');
-                } else {
-                    alert('Cadastro realizado com sucesso!');
-                }
-                
-                // Redirecionar para dashboard
-                setTimeout(() => {
-                    window.location.href = 'dashboard.html';
-                }, 1500);
-
-            } catch (error) {
-                console.error('Erro no registro:', error);
-                
-                // Mensagem de erro
-                if (typeof utils !== 'undefined') {
-                    if (error.response && error.response.data && error.response.data.error) {
-                        utils.showError(error.response.data.error);
-                    } else if (error.message) {
-                        utils.showError(error.message);
-                    } else {
-                        utils.showError('Erro ao realizar cadastro');
-                    }
-                } else {
-                    alert('Erro ao realizar cadastro: ' + error.message);
-                }
-            } finally {
-                // Restaurar botão
-                if (typeof utils !== 'undefined') {
-                    utils.setLoading(submitBtn, false);
-                } else {
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = 'Criar conta';
-                }
-            }
-        }
-
+        document.getElementById('cadastroForm').addEventListener('submit', handleRegister);
+        document.getElementById('buscarCep').addEventListener('click', buscarCEP);
+        
         // Formatação automática do CEP
         document.getElementById('cep').addEventListener('input', function(e) {
             let value = e.target.value.replace(/\D/g, '');
@@ -368,25 +190,6 @@
             }
             e.target.value = value;
         });
-
-        // Buscar CEP quando clicar no botão
-        document.getElementById('buscarCep').addEventListener('click', buscarCEP);
-        
-        // Buscar CEP quando pressionar Enter no campo CEP
-        document.getElementById('cep').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                buscarCEP();
-            }
-        });
-
-        // Registrar o event listener para o formulário
-        document.getElementById('cadastroForm').addEventListener('submit', handleRegister);
-
-        // Debug: verificar se as funções estão carregadas
-        console.log('handleRegister carregada:', typeof handleRegister);
-        console.log('utils carregado:', typeof utils);
-        console.log('api carregado:', typeof api);
     </script>
 </body>
 </html>

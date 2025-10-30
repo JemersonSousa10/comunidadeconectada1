@@ -10,16 +10,29 @@ const servicesRoutes = require('./routes/services');
 
 const app = express();
 
-// ✅ CORS CORRIGIDO - Permitindo todas as origens temporariamente
+// ✅✅✅ CORREÇÃO CRÍTICA DO CORS ✅✅✅
 const corsOptions = {
-  origin: true, // Permite TODAS as origens (vamos restringir depois)
+  origin: [
+    'https://comunidadeconectada1.vercel.app',
+    'https://comunidade-conectada-frontend.vercel.app',
+    'http://localhost:8000',
+    'http://localhost:3000',
+    'http://127.0.0.1:8000',
+    'http://127.0.0.1:3000'
+  ],
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Origin', 'Accept'],
+  optionsSuccessStatus: 200
 };
 
-// Middlewares
+// Aplicar CORS antes de qualquer middleware
 app.use(cors(corsOptions));
+
+// ✅ Middleware para tratar preflight OPTIONS requests manualmente
+app.options('*', cors(corsOptions));
+
+// Middlewares
 app.use(express.json());
 
 // Log de requests (útil para debug)
@@ -50,9 +63,13 @@ app.get('/api/health', async (req, res) => {
         status: 'OK', 
         message: 'Comunidade Conectada API está funcionando!',
         timestamp: new Date().toISOString(),
-        environment: process.env.NODE_ENV,
+        environment: process.env.NODE_ENV || 'development',
         database: 'Connected',
-        cors: 'Enabled'
+        cors: 'Enabled',
+        allowedOrigins: [
+          'https://comunidadeconectada1.vercel.app',
+          'https://comunidade-conectada-frontend.vercel.app'
+        ]
       });
     });
   } catch (error) {
@@ -69,13 +86,19 @@ app.get('/', (req, res) => {
   res.json({ 
     message: '🚀 Comunidade Conectada API',
     version: '1.0.0',
-    environment: process.env.NODE_ENV,
+    environment: process.env.NODE_ENV || 'development',
     endpoints: {
       health: '/api/health',
       auth: '/api/auth',
       services: '/api/services'
     },
-    cors: 'Enabled for all origins'
+    cors: {
+      enabled: true,
+      allowedOrigins: [
+        'https://comunidadeconectada1.vercel.app',
+        'https://comunidade-conectada-frontend.vercel.app'
+      ]
+    }
   });
 });
 
@@ -108,7 +131,10 @@ const PORT = process.env.PORT || 10000;
 
 app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando na porta ${PORT}`);
-  console.log(`📱 Ambiente: ${process.env.NODE_ENV}`);
+  console.log(`📱 Ambiente: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🌐 Health check: https://comunidade-conectada-backend.onrender.com/api/health`);
-  console.log(`🔓 CORS: Habilitado para todas as origens`);
+  console.log(`🔓 CORS: Habilitado para:`);
+  console.log(`   - https://comunidadeconectada1.vercel.app`);
+  console.log(`   - https://comunidade-conectada-frontend.vercel.app`);
+  console.log(`   - Localhost (desenvolvimento)`);
 });

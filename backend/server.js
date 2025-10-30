@@ -14,24 +14,29 @@ const app = express();
 const allowedOrigins = [
   'http://localhost:3001',
   'http://127.0.0.1:3001',
-  'https://comunidade-conectada.vercel.app', // SUA URL DA VERCEL AQUI
+  'https://comunidadeconectada1.vercel.app',
+  'https://comunidadeconectada1-git-main-jemersons-projects-4f5e2b25.vercel.app',
   'https://*.vercel.app'
 ];
 
 const corsOptions = {
   origin: function (origin, callback) {
-    // Permitir requests sem origin (como mobile apps ou curl requests)
+    // Permitir requests sem origin
     if (!origin) return callback(null, true);
     
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
+      console.log('🚫 CORS bloqueado para origem:', origin);
       callback(new Error('Not allowed by CORS'));
     }
   },
   credentials: true,
   optionsSuccessStatus: 200
 };
+
+// Use corsOptions no app
+app.use(cors(corsOptions));
 
 // Middlewares
 app.use(cors(corsOptions));

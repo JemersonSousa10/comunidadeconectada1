@@ -1,6 +1,3 @@
-import api from './api.js';
-import utils from './utils.js';
-
 const auth = {
     // Verificar se usuário está logado
     isLoggedIn: () => {
@@ -35,13 +32,13 @@ const auth = {
     // Fazer logout
     logout: () => {
         auth.clearAuth();
-        utils.showSuccess('Logout realizado com sucesso!');
+        window.utils.showSuccess('Logout realizado com sucesso!');
     },
 
     // Obter perfil do usuário
     getProfile: async () => {
         try {
-            return await api.get('/auth/profile');
+            return await window.api.get('/auth/profile');
         } catch (error) {
             console.error('Erro ao obter perfil:', error);
             throw error;
@@ -72,7 +69,7 @@ async function handleRegister(event) {
     
     const form = event.target;
     const submitBtn = form.querySelector('button[type="submit"]');
-    utils.setLoading(submitBtn, true);
+    window.utils.setLoading(submitBtn, true);
 
     try {
         // Validar senhas
@@ -100,12 +97,12 @@ async function handleRegister(event) {
         };
 
         // Fazer request de registro
-        const result = await api.post('/auth/register', formData, { public: true });
+        const result = await window.api.post('/auth/register', formData, { public: true });
 
         // Salvar autenticação
         auth.setAuth(result.token, result.user);
         
-        utils.showSuccess('Cadastro realizado com sucesso!');
+        window.utils.showSuccess('Cadastro realizado com sucesso!');
         
         // Redirecionar para dashboard
         setTimeout(() => {
@@ -114,9 +111,9 @@ async function handleRegister(event) {
 
     } catch (error) {
         console.error('Erro no registro:', error);
-        utils.handleError(error, 'Erro ao realizar cadastro');
+        window.utils.handleError(error, 'Erro ao realizar cadastro');
     } finally {
-        utils.setLoading(submitBtn, false);
+        window.utils.setLoading(submitBtn, false);
     }
 }
 
@@ -126,7 +123,7 @@ async function handleLogin(event) {
     
     const form = event.target;
     const submitBtn = form.querySelector('button[type="submit"]');
-    utils.setLoading(submitBtn, true);
+    window.utils.setLoading(submitBtn, true);
 
     try {
         const formData = {
@@ -134,12 +131,12 @@ async function handleLogin(event) {
             senha: document.getElementById('senha').value
         };
 
-        const result = await api.post('/auth/login', formData, { public: true });
+        const result = await window.api.post('/auth/login', formData, { public: true });
 
         // Salvar autenticação
         auth.setAuth(result.token, result.user);
         
-        utils.showSuccess('Login realizado com sucesso!');
+        window.utils.showSuccess('Login realizado com sucesso!');
         
         // Redirecionar para dashboard
         setTimeout(() => {
@@ -148,19 +145,19 @@ async function handleLogin(event) {
 
     } catch (error) {
         console.error('Erro no login:', error);
-        utils.handleError(error, 'Erro ao fazer login');
+        window.utils.handleError(error, 'Erro ao fazer login');
     } finally {
-        utils.setLoading(submitBtn, false);
+        window.utils.setLoading(submitBtn, false);
     }
 }
 
 // Buscar CEP via API
 async function buscarCEP() {
     const cepInput = document.getElementById('cep');
-    const cep = utils.cleanCEP(cepInput.value);
+    const cep = window.utils.cleanCEP(cepInput.value);
 
-    if (!utils.validateCEP(cep)) {
-        utils.showError('CEP inválido. Formato: 00000-000');
+    if (!window.utils.validateCEP(cep)) {
+        window.utils.showError('CEP inválido. Formato: 00000-000');
         return;
     }
 
@@ -175,18 +172,18 @@ async function buscarCEP() {
         const enderecoInput = document.getElementById('endereco');
         enderecoInput.value = `${data.logradouro}, ${data.bairro}, ${data.localidade} - ${data.uf}`;
         
-        utils.showSuccess('Endereço preenchido automaticamente!');
+        window.utils.showSuccess('Endereço preenchido automaticamente!');
 
     } catch (error) {
         console.error('Erro ao buscar CEP:', error);
-        utils.showError('Erro ao buscar CEP. Preencha o endereço manualmente.');
+        window.utils.showError('Erro ao buscar CEP. Preencha o endereço manualmente.');
     }
 }
 
 // Proteger rotas que requerem autenticação
 function requireAuth() {
     if (!auth.isLoggedIn()) {
-        utils.showError('Você precisa estar logado para acessar esta página');
+        window.utils.showError('Você precisa estar logado para acessar esta página');
         setTimeout(() => {
             window.location.href = 'login.html';
         }, 2000);
@@ -201,7 +198,7 @@ function requirePrestador() {
 
     const user = auth.getCurrentUser();
     if (user.tipo !== 'prestador') {
-        utils.showError('Apenas prestadores de serviços podem acessar esta funcionalidade');
+        window.utils.showError('Apenas prestadores de serviços podem acessar esta funcionalidade');
         return false;
     }
 
@@ -211,14 +208,14 @@ function requirePrestador() {
 // Atualizar dados do usuário
 async function updateUserProfile(userData) {
     try {
-        const result = await api.put('/auth/profile', userData);
+        const result = await window.api.put('/auth/profile', userData);
         
         // Atualizar usuário no localStorage
         const currentUser = auth.getCurrentUser();
         const updatedUser = { ...currentUser, ...userData };
         localStorage.setItem('currentUser', JSON.stringify(updatedUser));
         
-        utils.showSuccess('Perfil atualizado com sucesso!');
+        window.utils.showSuccess('Perfil atualizado com sucesso!');
         return result;
     } catch (error) {
         console.error('Erro ao atualizar perfil:', error);
@@ -231,5 +228,3 @@ window.handleRegister = handleRegister;
 window.handleLogin = handleLogin;
 window.buscarCEP = buscarCEP;
 window.auth = auth;
-
-export default auth;

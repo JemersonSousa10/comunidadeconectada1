@@ -180,4 +180,5 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-export default utils;
+// Tornar global
+window.utils = utils;

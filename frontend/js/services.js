@@ -1,6 +1,3 @@
-import api from './api.js';
-import utils from './utils.js';
-
 const services = {
     // Carregar todos os serviços
     loadServices: async (filters = {}) => {
@@ -29,7 +26,7 @@ const services = {
             const queryString = params.toString();
             const fullEndpoint = queryString ? `${endpoint}?${queryString}` : endpoint;
 
-            const result = await api.get(fullEndpoint, { public: true });
+            const result = await window.api.get(fullEndpoint, { public: true });
             const servicesList = result.services || [];
 
             // Exibir serviços
@@ -53,7 +50,7 @@ const services = {
 
         } catch (error) {
             console.error('Erro ao carregar serviços:', error);
-            utils.showError('Erro ao carregar serviços. Tente novamente.');
+            window.utils.showError('Erro ao carregar serviços. Tente novamente.');
             noServicesMessage.style.display = 'block';
             noServicesMessage.innerHTML = '<p>Erro ao carregar serviços. Tente novamente.</p>';
         } finally {
@@ -71,21 +68,21 @@ const services = {
             <div class="service-card" role="listitem" 
                  onclick="services.openServiceModal(${service.id})"
                  tabindex="0"
-                 aria-label="${service.nome_servico} - ${utils.formatCurrency(service.valor)}"
+                 aria-label="${service.nome_servico} - ${window.utils.formatCurrency(service.valor)}"
                  onkeypress="if(event.key === 'Enter') services.openServiceModal(${service.id})">
                 
                 <div class="service-header">
                     <div>
-                        <h3 class="service-title">${utils.sanitizeInput(service.nome_servico)}</h3>
-                        <span class="service-category">${utils.sanitizeInput(service.categoria)}</span>
+                        <h3 class="service-title">${window.utils.sanitizeInput(service.nome_servico)}</h3>
+                        <span class="service-category">${window.utils.sanitizeInput(service.categoria)}</span>
                     </div>
-                    <div class="service-price">${utils.formatCurrency(service.valor)}</div>
+                    <div class="service-price">${window.utils.formatCurrency(service.valor)}</div>
                 </div>
                 
-                <p class="service-description">${utils.sanitizeInput(description)}</p>
+                <p class="service-description">${window.utils.sanitizeInput(description)}</p>
                 
                 <div class="service-footer">
-                    <span class="service-prestador">Por: ${utils.sanitizeInput(service.prestador_nome)}</span>
+                    <span class="service-prestador">Por: ${window.utils.sanitizeInput(service.prestador_nome)}</span>
                     <a href="#" class="service-contact" onclick="event.stopPropagation(); services.contactService(${service.id})">
                         Contatar
                     </a>
@@ -97,7 +94,7 @@ const services = {
     // Abrir modal de detalhes do serviço
     openServiceModal: async (serviceId) => {
         try {
-            const result = await api.get('/services', { public: true });
+            const result = await window.api.get('/services', { public: true });
             const service = result.services.find(s => s.id === serviceId);
             
             if (!service) {
@@ -114,46 +111,46 @@ const services = {
                 <div class="service-details">
                     <div class="detail-row">
                         <strong>Categoria:</strong>
-                        <span>${utils.sanitizeInput(service.categoria)}</span>
+                        <span>${window.utils.sanitizeInput(service.categoria)}</span>
                     </div>
                     
                     <div class="detail-row">
                         <strong>Prestador:</strong>
-                        <span>${utils.sanitizeInput(service.prestador_nome)}</span>
+                        <span>${window.utils.sanitizeInput(service.prestador_nome)}</span>
                     </div>
                     
                     <div class="detail-row">
                         <strong>Valor:</strong>
-                        <span class="service-price-large">${utils.formatCurrency(service.valor)}</span>
+                        <span class="service-price-large">${window.utils.formatCurrency(service.valor)}</span>
                     </div>
                     
                     <div class="detail-row">
                         <strong>Descrição:</strong>
-                        <p>${utils.sanitizeInput(service.descricao)}</p>
+                        <p>${window.utils.sanitizeInput(service.descricao)}</p>
                     </div>
                     
                     ${service.localizacao ? `
                     <div class="detail-row">
                         <strong>Localização:</strong>
-                        <span>${utils.sanitizeInput(service.localizacao)}</span>
+                        <span>${window.utils.sanitizeInput(service.localizacao)}</span>
                     </div>
                     ` : ''}
                     
                     <div class="detail-row">
                         <strong>Contato:</strong>
-                        <span>${utils.sanitizeInput(service.contato)}</span>
+                        <span>${window.utils.sanitizeInput(service.contato)}</span>
                     </div>
                     
                     <div class="detail-row">
                         <strong>Publicado em:</strong>
-                        <span>${utils.formatDate(service.criado_em)}</span>
+                        <span>${window.utils.formatDate(service.criado_em)}</span>
                     </div>
                     
                     <div class="modal-actions">
                         <button class="btn btn-primary" onclick="services.contactService(${service.id})">
                             📞 Entrar em Contato
                         </button>
-                        <button class="btn btn-outline" onclick="utils.copyToClipboard('${service.contato}')">
+                        <button class="btn btn-outline" onclick="window.utils.copyToClipboard('${service.contato}')">
                             📋 Copiar Contato
                         </button>
                     </div>
@@ -165,14 +162,14 @@ const services = {
 
         } catch (error) {
             console.error('Erro ao abrir modal:', error);
-            utils.showError('Erro ao carregar detalhes do serviço');
+            window.utils.showError('Erro ao carregar detalhes do serviço');
         }
     },
 
     // Contatar serviço
     contactService: (serviceId) => {
         // Em uma implementação real, isso poderia abrir WhatsApp, email, etc.
-        utils.showMessage('Funcionalidade de contato em desenvolvimento', 'info');
+        window.utils.showMessage('Funcionalidade de contato em desenvolvimento', 'info');
         
         // Simulação de contato
         const modal = document.getElementById('serviceModal');
@@ -201,7 +198,7 @@ const services = {
     // Obter serviços do usuário logado (para prestadores)
     getMyServices: async () => {
         try {
-            return await api.get('/services/my-services');
+            return await window.api.get('/services/my-services');
         } catch (error) {
             console.error('Erro ao obter meus serviços:', error);
             throw error;
@@ -211,8 +208,8 @@ const services = {
     // Criar novo serviço
     createService: async (serviceData) => {
         try {
-            const result = await api.post('/services', serviceData);
-            utils.showSuccess('Serviço criado com sucesso!');
+            const result = await window.api.post('/services', serviceData);
+            window.utils.showSuccess('Serviço criado com sucesso!');
             return result;
         } catch (error) {
             console.error('Erro ao criar serviço:', error);
@@ -227,12 +224,12 @@ const services = {
         }
 
         try {
-            await api.delete(`/services/${serviceId}`);
-            utils.showSuccess('Serviço excluído com sucesso!');
+            await window.api.delete(`/services/${serviceId}`);
+            window.utils.showSuccess('Serviço excluído com sucesso!');
             return true;
         } catch (error) {
             console.error('Erro ao excluir serviço:', error);
-            utils.showError('Erro ao excluir serviço');
+            window.utils.showError('Erro ao excluir serviço');
             return false;
         }
     },
@@ -255,11 +252,11 @@ const services = {
 async function handleServiceCreate(event) {
     event.preventDefault();
     
-    if (!auth.requirePrestador()) return;
+    if (!window.auth.requirePrestador()) return;
     
     const form = event.target;
     const submitBtn = form.querySelector('button[type="submit"]');
-    utils.setLoading(submitBtn, true);
+    window.utils.setLoading(submitBtn, true);
 
     try {
         const formData = {
@@ -280,9 +277,9 @@ async function handleServiceCreate(event) {
 
     } catch (error) {
         console.error('Erro ao criar serviço:', error);
-        utils.handleError(error, 'Erro ao criar serviço');
+        window.utils.handleError(error, 'Erro ao criar serviço');
     } finally {
-        utils.setLoading(submitBtn, false);
+        window.utils.setLoading(submitBtn, false);
     }
 }
 
@@ -353,5 +350,3 @@ document.addEventListener('DOMContentLoaded', function() {
 // Export para uso global
 window.services = services;
 window.handleServiceCreate = handleServiceCreate;
-
-export default services;

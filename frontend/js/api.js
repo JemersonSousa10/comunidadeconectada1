@@ -1,7 +1,5 @@
-const getApiBaseUrl = () => {
-  // Use a URL do seu backend no Render
-  return 'https://comunidade-conectada-backend.onrender.com';
-};
+// Configuração e utilitários para API
+const API_BASE_URL = 'https://comunidade-conectada-backend.onrender.com/api';
 
 const api = {
     // Headers padrão
@@ -30,6 +28,7 @@ const api = {
         };
 
         try {
+            console.log(`🌐 Fazendo request para: ${url}`);
             const response = await fetch(url, config);
             
             // Verificar se a resposta é JSON
@@ -60,7 +59,7 @@ const api = {
 
             return data;
         } catch (error) {
-            console.error('API Request failed:', error);
+            console.error('❌ API Request failed:', error);
             
             // Verificar se é erro de rede
             if (error.name === 'TypeError' && error.message.includes('fetch')) {
@@ -161,5 +160,5 @@ function updateLoadingIndicator() {
     }
 }
 
-// Export para uso em outros arquivos
-export default api;
+// Tornar global
+window.api = api;

@@ -1,5 +1,7 @@
-// Configuração e utilitários para API
-const API_BASE_URL = 'http://localhost:3000/api';
+const getApiBaseUrl = () => {
+  // Use a URL do seu backend no Render
+  return 'https://comunidade-conectada-backend.onrender.com';
+};
 
 const api = {
     // Headers padrão

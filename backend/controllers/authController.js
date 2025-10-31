@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 
 const generateToken = (userId) => {
   return jwt.sign({ userId }, process.env.JWT_SECRET || 'fallback-secret', { expiresIn: '7d' });
@@ -9,7 +10,8 @@ exports.register = async (req, res) => {
   try {
     console.log('📥 Dados recebidos no register:', req.body);
 
-    const { nome, email, senha, tipo, telefone, endereco, cidade, estado } = req.body;
+    // ✅ APENAS CAMPOS QUE EXISTEM NA TABELA
+    const { nome, email, senha, tipo, telefone, endereco, cep } = req.body;
 
     // Validações básicas
     if (!nome || !email || !senha || !tipo) {
@@ -26,33 +28,42 @@ exports.register = async (req, res) => {
 
     console.log('✅ Usuário não existe, criando...');
 
-    // Criar usuário
+    // ✅ HASH DA SENHA (CRÍTICO PARA SEGURANÇA)
+    console.log('🔐 Gerando hash da senha...');
+    const hashedPassword = await bcrypt.hash(senha, 10);
+    console.log('✅ Hash da senha gerado');
+
+    // ✅ DADOS CORRETOS - APENAS COLUNAS EXISTENTES
     const userData = {
       nome,
       email,
-      senha, // Em produção, isso deve ser hasheado com bcrypt
+      senha: hashedPassword, // ✅ SENHA HASHED
       tipo,
       telefone: telefone || null,
       endereco: endereco || null,
-      cidade: cidade || null,
-      estado: estado || null
+      cep: cep || null
+      // ❌ REMOVIDO: cidade, estado (não existem na tabela)
     };
 
-    console.log('📝 Dados para criar usuário:', userData);
+    console.log('📝 Dados para criar usuário (APENAS COLUNAS EXISTENTES):', userData);
 
-    const result = await User.create(userData);
+    // ✅ User.create AGORA RETORNA O USUÁRIO COMPLETO, NÃO APENAS insertId
+    const user = await User.create(userData);
 
-    console.log('🎉 Usuário criado com sucesso, ID:', result.insertId);
+    console.log('🎉 Usuário criado com sucesso, ID:', user.id);
 
-    const token = generateToken(result.insertId);
+    const token = generateToken(user.id);
 
     res.status(201).json({
       message: 'Usuário criado com sucesso',
       user: { 
-        id: result.insertId, 
-        nome: nome, 
-        email: email, 
-        tipo: tipo 
+        id: user.id, 
+        nome: user.nome, 
+        email: user.email, 
+        tipo: user.tipo,
+        telefone: user.telefone,
+        cep: user.cep,
+        endereco: user.endereco
       },
       token
     });
@@ -79,8 +90,10 @@ exports.login = async (req, res) => {
       return res.status(401).json({ error: 'Credenciais inválidas' });
     }
 
-    // Comparação direta da senha (em produção usar bcrypt)
-    if (senha !== user.senha) {
+    // ✅ COMPARAÇÃO COM BCRYPT (SENHA HASHED)
+    console.log('🔐 Verificando senha com bcrypt...');
+    const isPasswordValid = await bcrypt.compare(senha, user.senha);
+    if (!isPasswordValid) {
       return res.status(401).json({ error: 'Credenciais inválidas' });
     }
 
@@ -94,7 +107,10 @@ exports.login = async (req, res) => {
         id: user.id, 
         nome: user.nome, 
         email: user.email, 
-        tipo: user.tipo 
+        tipo: user.tipo,
+        telefone: user.telefone,
+        cep: user.cep,
+        endereco: user.endereco
       },
       token
     });
@@ -119,8 +135,8 @@ exports.getProfile = async (req, res) => {
         tipo: user.tipo,
         telefone: user.telefone,
         endereco: user.endereco,
-        cidade: user.cidade,
-        estado: user.estado
+        cep: user.cep
+        // ❌ REMOVIDO: cidade, estado (não existem na tabela)
       }
     });
   } catch (error) {

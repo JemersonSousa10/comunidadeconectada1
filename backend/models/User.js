@@ -1,75 +1,117 @@
-const connection = require('../config/database');
+const db = require('../config/database');
+const bcrypt = require('bcryptjs');
+
+console.log('🔧 User.js carregado - ESTRUTURA AIVEN CONFIRMADA');
 
 class User {
     static async create(userData) {
+        let connection;
         try {
-            console.log('📝 Iniciando criação de usuário:', userData);
+            console.log('🎯 USER.CREATE - Iniciando criação de usuário');
+            console.log('📦 Dados recebidos (APENAS COLUNAS EXISTENTES):', {
+                email: userData.email,
+                tipo: userData.tipo,
+                nome: userData.nome,
+                telefone: userData.telefone,
+                cep: userData.cep,
+                endereco: userData.endereco
+            });
 
-            const query = `INSERT INTO usuarios (nome, email, senha, tipo, telefone, endereco, cidade, estado) 
-                           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+            // Validações básicas
+            if (!userData.email || !userData.senha || !userData.tipo) {
+                throw new Error('Email, senha e tipo são obrigatórios');
+            }
+
+            console.log('🔐 Gerando hash da senha...');
+            const saltRounds = 10;
+            const hashedPassword = await bcrypt.hash(userData.senha, saltRounds);
+            console.log('✅ Hash gerado');
+
+            // Obter conexão
+            console.log('📊 Obtendo conexão com banco...');
+            connection = await db;
+            console.log('✅ Conexão obtida');
+
+            // ✅✅✅ QUERY CORRIGIDA - APENAS COLUNAS QUE EXISTEM NA SUA TABELA ✅✅✅
+            const sql = `INSERT INTO usuarios 
+                (nome, email, senha, tipo, telefone, cep, endereco) 
+                VALUES (?, ?, ?, ?, ?, ?, ?)`;
             
-            const params = [
-                userData.nome,
+            const values = [
+                userData.nome || '',
                 userData.email,
-                userData.senha, 
+                hashedPassword,
                 userData.tipo,
                 userData.telefone || null,
-                userData.endereco || null,
-                userData.cidade || null,
-                userData.estado || null
+                userData.cep || null,
+                userData.endereco || null
             ];
 
-            console.log('🔧 Parâmetros da query:', params);
+            console.log('🛠️ Executando query CORRIGIDA:', sql);
+            console.log('📦 Valores (7 parâmetros):', values);
 
-            // ✅ Use a conexão corretamente com await
-            const conn = await connection;
-            const [result] = await conn.execute(query, params);
+            // Executar inserção
+            const [result] = await connection.execute(sql, values);
+            console.log('✅ Usuário inserido no Aiven. ID:', result.insertId);
+
+            // Buscar usuário criado
+            const [users] = await connection.execute(
+                `SELECT id, nome, email, tipo, telefone, cep, endereco, 
+                 criado_em, atualizado_em 
+                 FROM usuarios WHERE id = ?`,
+                [result.insertId]
+            );
+
+            const userCriado = users[0];
+            console.log('🎉 USUÁRIO CRIADO COM SUCESSO:', userCriado.email);
             
-            console.log('✅ Usuário criado com ID:', result.insertId);
-            return result;
+            return userCriado;
             
         } catch (error) {
-            console.error('❌ Erro na criação do usuário:', error);
-            throw error;
+            console.error('💥 ERRO CRÍTICO no User.create:');
+            console.error('🔴 Código:', error.code);
+            console.error('📝 Mensagem:', error.message);
+            console.error('🔍 Stack:', error.stack);
+            
+            if (error.code === 'ER_DUP_ENTRY') {
+                throw new Error('Email já está cadastrado');
+            }
+            if (error.code === 'ER_BAD_FIELD_ERROR') {
+                throw new Error('Problema na estrutura do banco: ' + error.message);
+            }
+            
+            throw new Error('Erro ao criar usuário: ' + error.message);
         }
     }
 
     static async findByEmail(email) {
         try {
             console.log('🔍 Buscando usuário por email:', email);
-            
-            const query = 'SELECT * FROM usuarios WHERE email = ?';
-            
-            // ✅ Use a conexão corretamente com await
-            const conn = await connection;
-            const [rows] = await conn.execute(query, [email]);
-            const user = rows[0];
-            
-            console.log('📊 Usuário encontrado:', user ? 'Sim' : 'Não');
-            return user;
-            
+            const connection = await db;
+            const [users] = await connection.execute(
+                'SELECT * FROM usuarios WHERE email = ?',
+                [email]
+            );
+            console.log('✅ Busca concluída. Encontrados:', users.length);
+            return users[0];
         } catch (error) {
-            console.error('❌ Erro ao buscar usuário por email:', error);
+            console.error('❌ Erro no User.findByEmail:', error);
             throw error;
         }
     }
 
     static async findById(id) {
         try {
-            console.log('🔍 Buscando usuário por ID:', id);
-            
-            const query = 'SELECT * FROM usuarios WHERE id = ?';
-            
-            // ✅ Use a conexão corretamente com await
-            const conn = await connection;
-            const [rows] = await conn.execute(query, [id]);
-            const user = rows[0];
-            
-            console.log('📊 Usuário encontrado por ID:', user ? 'Sim' : 'Não');
-            return user;
-            
+            const connection = await db;
+            const [users] = await connection.execute(
+                `SELECT id, nome, email, tipo, telefone, cep, endereco, 
+                 criado_em, atualizado_em 
+                 FROM usuarios WHERE id = ?`,
+                [id]
+            );
+            return users[0];
         } catch (error) {
-            console.error('❌ Erro ao buscar usuário por ID:', error);
+            console.error('❌ Erro no User.findById:', error);
             throw error;
         }
     }

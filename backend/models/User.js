@@ -1,55 +1,67 @@
-const db = require('../config/database');
-const bcrypt = require('bcryptjs');
+const connection = require('../config/database');
 
 class User {
-   static async create(userData) {
-        // Garantir que campos undefined sejam convertidos para NULL
+    static async create(userData) {
+        // Extrair e normalizar os dados - converter undefined para null
         const {
-            nome, email, senha, tipo, 
-            telefone = null, 
-            endereco = null, 
-            cidade = null, 
-            estado = null 
+            nome,
+            email, 
+            senha,
+            tipo,
+            telefone,
+            endereco,
+            cidade,
+            estado
         } = userData;
 
         const query = `INSERT INTO usuarios (nome, email, senha, tipo, telefone, endereco, cidade, estado) 
                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
         
-        const [result] = await connection.execute(query, [
-            nome, email, senha, tipo, 
-            telefone || null, 
-            endereco || null, 
-            cidade || null, 
-            estado || null
-        ]);
-        
-        return result;
+        // Converter undefined/vazios para NULL explicitamente
+        const params = [
+            nome,
+            email,
+            senha, 
+            tipo,
+            telefone ? telefone : null,
+            endereco ? endereco : null,
+            cidade ? cidade : null,
+            estado ? estado : null
+        ];
+
+        console.log('📝 Executando query com parâmetros:', params);
+
+        try {
+            const [result] = await connection.execute(query, params);
+            console.log('✅ Usuário criado com ID:', result.insertId);
+            return result;
+        } catch (error) {
+            console.error('❌ Erro na query:', error);
+            throw error;
+        }
     }
 
+    static async findByEmail(email) {
+        const query = 'SELECT * FROM usuarios WHERE email = ?';
+        try {
+            const [rows] = await connection.execute(query, [email]);
+            return rows[0];
+        } catch (error) {
+            console.error('❌ Erro ao buscar usuário por email:', error);
+            throw error;
+        }
+    }
 
-  static findByEmail(email) {
-    return new Promise((resolve, reject) => {
-      const sql = 'SELECT * FROM usuarios WHERE email = ?';
-      db.execute(sql, [email], (err, results) => {
-        if (err) reject(err);
-        resolve(results[0]);
-      });
-    });
-  }
-
-  static findById(id) {
-    return new Promise((resolve, reject) => {
-      const sql = 'SELECT id, nome, email, tipo, cep, endereco FROM usuarios WHERE id = ?';
-      db.execute(sql, [id], (err, results) => {
-        if (err) reject(err);
-        resolve(results[0]);
-      });
-    });
-  }
-
-  static comparePassword(plainPassword, hashedPassword) {
-    return bcrypt.compare(plainPassword, hashedPassword);
-  }
+    static async findById(id) {
+        const query = 'SELECT * FROM usuarios WHERE id = ?';
+        try {
+            const [rows] = await connection.execute(query, [id]);
+            return rows[0];
+        } catch (error) {
+            console.error('❌ Erro ao buscar usuário por ID:', error);
+            throw error;
+        }
+    }
 }
 
 module.exports = User;

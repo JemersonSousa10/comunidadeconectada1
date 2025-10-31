@@ -21,9 +21,12 @@ class User {
 
             console.log('🔧 Parâmetros da query:', params);
 
-            const result = await connection.query(query, params);
-            console.log('✅ Usuário criado com ID:', result[0].insertId);
-            return result[0];
+            // ✅ Use a conexão corretamente com await
+            const conn = await connection;
+            const [result] = await conn.execute(query, params);
+            
+            console.log('✅ Usuário criado com ID:', result.insertId);
+            return result;
             
         } catch (error) {
             console.error('❌ Erro na criação do usuário:', error);
@@ -36,8 +39,11 @@ class User {
             console.log('🔍 Buscando usuário por email:', email);
             
             const query = 'SELECT * FROM usuarios WHERE email = ?';
-            const result = await connection.query(query, [email]);
-            const user = result[0][0];
+            
+            // ✅ Use a conexão corretamente com await
+            const conn = await connection;
+            const [rows] = await conn.execute(query, [email]);
+            const user = rows[0];
             
             console.log('📊 Usuário encontrado:', user ? 'Sim' : 'Não');
             return user;
@@ -53,8 +59,11 @@ class User {
             console.log('🔍 Buscando usuário por ID:', id);
             
             const query = 'SELECT * FROM usuarios WHERE id = ?';
-            const result = await connection.query(query, [id]);
-            const user = result[0][0];
+            
+            // ✅ Use a conexão corretamente com await
+            const conn = await connection;
+            const [rows] = await conn.execute(query, [id]);
+            const user = rows[0];
             
             console.log('📊 Usuário encontrado por ID:', user ? 'Sim' : 'Não');
             return user;

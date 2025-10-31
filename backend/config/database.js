@@ -1,4 +1,4 @@
-const mysql = require('mysql2');
+const mysql = require('mysql2/promise'); // ✅ Mude para a versão com promises
 const path = require('path');
 
 // Carregar .env da raiz do projeto
@@ -31,24 +31,16 @@ console.log('🔧 Configuração do Banco:', {
   database: process.env.DB_NAME || 'railway'
 });
 
+// ✅ Crie a conexão com a versão de promises
 const connection = mysql.createConnection(connectionConfig);
 
-connection.connect((err) => {
-  if (err) {
-    console.error('❌ Erro ao conectar com o MySQL:', err.message);
-    console.error('💡 Dica: Verifique suas variáveis de ambiente no Railway');
-    return;
-  }
-  console.log('✅ Conectado ao MySQL no Railway!');
-});
-
-// Handler para erros de conexão
-connection.on('error', (err) => {
-  console.error('❌ Erro na conexão MySQL:', err);
-  if (err.code === 'PROTOCOL_CONNECTION_LOST') {
-    console.log('🔄 Reconectando ao banco...');
-    connection.connect();
-  }
+// Teste de conexão
+connection.then((conn) => {
+  console.log('✅ Conectado ao MySQL no Railway! (usando promises)');
+  return conn;
+}).catch((err) => {
+  console.error('❌ Erro ao conectar com o MySQL:', err.message);
+  console.error('💡 Dica: Verifique suas variáveis de ambiente no Railway');
 });
 
 module.exports = connection;

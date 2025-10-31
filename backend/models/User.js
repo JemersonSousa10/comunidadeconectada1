@@ -2,50 +2,46 @@ const connection = require('../config/database');
 
 class User {
     static async create(userData) {
-        // Extrair e normalizar os dados - converter undefined para null
-        const {
-            nome,
-            email, 
-            senha,
-            tipo,
-            telefone,
-            endereco,
-            cidade,
-            estado
-        } = userData;
-
-        const query = `INSERT INTO usuarios (nome, email, senha, tipo, telefone, endereco, cidade, estado) 
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
-        
-        // Converter undefined/vazios para NULL explicitamente
-        const params = [
-            nome,
-            email,
-            senha, 
-            tipo,
-            telefone ? telefone : null,
-            endereco ? endereco : null,
-            cidade ? cidade : null,
-            estado ? estado : null
-        ];
-
-        console.log('📝 Executando query com parâmetros:', params);
-
         try {
-            const [result] = await connection.execute(query, params);
-            console.log('✅ Usuário criado com ID:', result.insertId);
-            return result;
+            console.log('📝 Iniciando criação de usuário:', userData);
+
+            const query = `INSERT INTO usuarios (nome, email, senha, tipo, telefone, endereco, cidade, estado) 
+                           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+            
+            const params = [
+                userData.nome,
+                userData.email,
+                userData.senha, 
+                userData.tipo,
+                userData.telefone || null,
+                userData.endereco || null,
+                userData.cidade || null,
+                userData.estado || null
+            ];
+
+            console.log('🔧 Parâmetros da query:', params);
+
+            const result = await connection.query(query, params);
+            console.log('✅ Usuário criado com ID:', result[0].insertId);
+            return result[0];
+            
         } catch (error) {
-            console.error('❌ Erro na query:', error);
+            console.error('❌ Erro na criação do usuário:', error);
             throw error;
         }
     }
 
     static async findByEmail(email) {
-        const query = 'SELECT * FROM usuarios WHERE email = ?';
         try {
-            const [rows] = await connection.execute(query, [email]);
-            return rows[0];
+            console.log('🔍 Buscando usuário por email:', email);
+            
+            const query = 'SELECT * FROM usuarios WHERE email = ?';
+            const result = await connection.query(query, [email]);
+            const user = result[0][0];
+            
+            console.log('📊 Usuário encontrado:', user ? 'Sim' : 'Não');
+            return user;
+            
         } catch (error) {
             console.error('❌ Erro ao buscar usuário por email:', error);
             throw error;
@@ -53,10 +49,16 @@ class User {
     }
 
     static async findById(id) {
-        const query = 'SELECT * FROM usuarios WHERE id = ?';
         try {
-            const [rows] = await connection.execute(query, [id]);
-            return rows[0];
+            console.log('🔍 Buscando usuário por ID:', id);
+            
+            const query = 'SELECT * FROM usuarios WHERE id = ?';
+            const result = await connection.query(query, [id]);
+            const user = result[0][0];
+            
+            console.log('📊 Usuário encontrado por ID:', user ? 'Sim' : 'Não');
+            return user;
+            
         } catch (error) {
             console.error('❌ Erro ao buscar usuário por ID:', error);
             throw error;

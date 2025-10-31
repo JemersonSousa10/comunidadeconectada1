@@ -43,6 +43,52 @@ app.use((req, res, next) => {
   next();
 });
 
+// ✅✅✅ NOVO ENDPOINT PARA VERIFICAR BANCO AIVEN ✅✅✅
+app.get('/api/check-database', async (req, res) => {
+  try {
+    const connection = require('./config/database');
+    const conn = await connection;
+    
+    // Teste 1: Conexão básica
+    const [test1] = await conn.execute('SELECT 1 as test_value');
+    
+    // Teste 2: Verificar tabelas
+    const [tables] = await conn.execute("SHOW TABLES LIKE 'usuarios'");
+    
+    // Teste 3: Contar usuários
+    const [users] = await conn.execute('SELECT COUNT(*) as user_count FROM usuarios');
+    
+    res.json({
+      success: true,
+      database: {
+        provider: 'AIVEN',
+        host: process.env.DB_HOST,
+        name: process.env.DB_NAME,
+        connected: true
+      },
+      tests: {
+        connection: test1[0].test_value === 1,
+        tableExists: tables.length > 0,
+        userCount: users[0].user_count
+      },
+      message: '✅ Banco de dados AIVEN funcionando corretamente!'
+    });
+    
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      database: {
+        provider: 'AIVEN',
+        host: process.env.DB_HOST,
+        name: process.env.DB_NAME,
+        connected: false
+      },
+      message: '❌ Erro na conexão com o banco AIVEN'
+    });
+  }
+});
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/services', servicesRoutes);
@@ -50,35 +96,37 @@ app.use('/api/services', servicesRoutes);
 // Health check melhorado
 app.get('/api/health', async (req, res) => {
   try {
-    // Testar conexão com o banco
+    // Testar conexão com o banco usando promises
     const db = require('./config/database');
-    db.execute('SELECT 1', (err) => {
-      if (err) {
-        return res.status(500).json({ 
-          status: 'ERROR', 
-          message: 'Database connection failed',
-          error: err.message 
-        });
-      }
-      
-      res.json({ 
-        status: 'OK', 
-        message: 'Comunidade Conectada API está funcionando!',
-        timestamp: new Date().toISOString(),
-        environment: process.env.NODE_ENV || 'development',
-        database: 'Connected',
-        cors: 'Enabled',
-        allowedOrigins: [
-          'https://comunidadeconectada1.vercel.app',
-          'https://comunidade-conectada-frontend.vercel.app'
-        ]
-      });
+    const conn = await db;
+    await conn.execute('SELECT 1');
+    
+    res.json({ 
+      status: 'OK', 
+      message: 'Comunidade Conectada API está funcionando!',
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development',
+      database: {
+        provider: 'AIVEN',
+        connected: true,
+        host: process.env.DB_HOST
+      },
+      cors: 'Enabled',
+      allowedOrigins: [
+        'https://comunidadeconectada1.vercel.app',
+        'https://comunidade-conectada-frontend.vercel.app'
+      ]
     });
   } catch (error) {
     res.status(500).json({ 
       status: 'ERROR', 
-      message: 'Health check failed',
-      error: error.message 
+      message: 'Database connection failed',
+      error: error.message,
+      database: {
+        provider: 'AIVEN', 
+        connected: false,
+        host: process.env.DB_HOST
+      }
     });
   }
 });
@@ -89,8 +137,13 @@ app.get('/', (req, res) => {
     message: '🚀 Comunidade Conectada API',
     version: '1.0.0',
     environment: process.env.NODE_ENV || 'development',
+    database: {
+      provider: 'AIVEN',
+      host: process.env.DB_HOST
+    },
     endpoints: {
       health: '/api/health',
+      database_check: '/api/check-database',
       auth: '/api/auth',
       services: '/api/services'
     },
@@ -134,7 +187,10 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando na porta ${PORT}`);
   console.log(`📱 Ambiente: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🗄️  Banco de Dados: AIVEN MySQL`);
+  console.log(`🔗 Host: ${process.env.DB_HOST}`);
   console.log(`🌐 Health check: https://comunidade-conectada-backend.onrender.com/api/health`);
+  console.log(`📊 Check Database: https://comunidade-conectada-backend.onrender.com/api/check-database`);
   console.log(`🔓 CORS: Habilitado para:`);
   console.log(`   - https://comunidadeconectada1.vercel.app`);
   console.log(`   - https://comunidade-conectada-frontend.vercel.app`);

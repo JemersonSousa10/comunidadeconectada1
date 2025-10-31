@@ -14,7 +14,9 @@ const app = express();
 const corsOptions = {
   origin: [
     'https://comunidadeconectada1.vercel.app',
+    'https://comunidadeconectada1-git-main-jemersons-projects-4f5e2b25.vercel.app', // NOVA URL
     'https://comunidade-conectada-frontend.vercel.app',
+    /\.vercel\.app$/, // PERMITE TODOS OS SUBDOMÍNIOS DO VERCEL
     'http://localhost:8000',
     'http://localhost:3000',
     'http://127.0.0.1:8000',

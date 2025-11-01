@@ -87,13 +87,22 @@ exports.login = async (req, res) => {
 
     const user = await User.findByEmail(email);
     if (!user) {
+      console.log('❌ Usuário não encontrado:', email);
       return res.status(401).json({ error: 'Credenciais inválidas' });
     }
 
-    // ✅ COMPARAÇÃO COM BCRYPT (SENHA HASHED)
-    console.log('🔐 Verificando senha com bcrypt...');
+    console.log('🔐 Usuário encontrado, verificando senha...');
+    console.log('📊 Senha do banco (hash):', user.senha ? '[HASH PRESENTE]' : '[SEM SENHA]');
+    console.log('📊 Senha fornecida:', senha);
+
+    // ✅ COMPARAÇÃO CORRETA COM BCRYPT
+    console.log('🔐 Comparando senha com bcrypt...');
     const isPasswordValid = await bcrypt.compare(senha, user.senha);
+    
+    console.log('📊 Resultado da comparação:', isPasswordValid);
+
     if (!isPasswordValid) {
+      console.log('❌ Senha inválida para usuário:', email);
       return res.status(401).json({ error: 'Credenciais inválidas' });
     }
 
@@ -116,6 +125,7 @@ exports.login = async (req, res) => {
     });
   } catch (error) {
     console.error('❌ Erro no login:', error);
+    console.error('🔍 Stack trace:', error.stack);
     res.status(500).json({ error: 'Erro interno do servidor' });
   }
 };

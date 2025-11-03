@@ -262,4 +262,101 @@ function clearAuthData() {
     currentUser = null;
 }
 
+// Verificar se usuário está logado
+auth.isLoggedIn = function() {
+    const token = localStorage.getItem('token');
+    const userData = localStorage.getItem('user');
+    
+    if (!token || !userData) {
+        return false;
+    }
+    
+    try {
+        // Verificar se o token não expirou
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const isExpired = payload.exp * 1000 < Date.now();
+        
+        return !isExpired;
+    } catch (error) {
+        console.error('Erro ao verificar token:', error);
+        return false;
+    }
+};
+
+// Obter usuário atual
+auth.getCurrentUser = function() {
+    const userData = localStorage.getItem('user');
+    return userData ? JSON.parse(userData) : null;
+};
+
+// Requer que usuário seja prestador
+auth.requirePrestador = function() {
+    if (!this.isLoggedIn()) {
+        alert('Você precisa estar logado para acessar esta página');
+        window.location.href = 'login.html';
+        return false;
+    }
+    
+    const user = this.getCurrentUser();
+    if (user.tipo !== 'prestador') {
+        alert('Apenas prestadores de serviços podem acessar esta página');
+        window.location.href = 'dashboard.html';
+        return false;
+    }
+    
+    return true;
+};
+
+// Obter perfil do usuário
+auth.getProfile = async function() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Erro ao carregar perfil');
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error('Erro ao obter perfil:', error);
+        throw error;
+    }
+};
+
+// Logout
+auth.handleLogout = function() {
+    console.log('👋 Realizando logout...');
+    
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    currentUser = null;
+    
+    alert('✅ Logout realizado com sucesso!');
+    window.location.href = 'index.html';
+};
+
+// Verificar e redirecionar se já estiver logado
+auth.redirectIfLoggedIn = function() {
+    if (this.isLoggedIn()) {
+        window.location.href = 'services.html';
+        return true;
+    }
+    return false;
+};
+
+// Verificar e redirecionar se NÃO estiver logado
+auth.redirectIfNotLoggedIn = function() {
+    if (!this.isLoggedIn()) {
+        window.location.href = 'login.html';
+        return true;
+    }
+    return false;
+};
+
 console.log('✅ auth.js carregado com sucesso!');

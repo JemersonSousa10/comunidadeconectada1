@@ -1,6 +1,5 @@
 const db = require('../config/database');
-// REMOVEMOS O REQUIRE DO BCRYPT AQUI, POIS ELE SÓ É NECESSÁRIO NO AuthController
-// O seu User.js agora deve começar assim (sem o bcrypt):
+// Não requeremos o bcrypt aqui, ele só é usado no AuthController
 
 console.log('🔧 User.js carregado - ESTRUTURA AIVEN CONFIRMADA');
 
@@ -10,23 +9,17 @@ class User {
         try {
             console.log('🎯 USER.CREATE - Iniciando criação de usuário');
             
-            // ... (restante dos logs)
-
-            // Validações básicas
             if (!userData.email || !userData.senha || !userData.tipo) {
                 throw new Error('Email, senha e tipo são obrigatórios');
             }
 
-            // 🛑 CORREÇÃO CRÍTICA: A senha jÁ é o hash que veio do AuthController!
-            // Não faça hash aqui. Apenas use o valor que está em userData.senha.
+            // A senha já é o hash que veio do AuthController
             const hashedPassword = userData.senha; 
             
-            // Obter conexão
             console.log('📊 Obtendo conexão com banco...');
             connection = await db;
             console.log('✅ Conexão obtida');
 
-            // ... (restante da sua query SQL)
             const sql = `INSERT INTO usuarios 
                 (nome, email, senha, tipo, telefone, cep, endereco) 
                 VALUES (?, ?, ?, ?, ?, ?, ?)`;
@@ -34,26 +27,77 @@ class User {
             const values = [
                 userData.nome || '',
                 userData.email,
-                hashedPassword, // <-- USANDO O HASH CORRETO (ÚNICO)
+                hashedPassword,
                 userData.tipo,
                 userData.telefone || null,
                 userData.cep || null,
                 userData.endereco || null
             ];
 
-            // ... (restante da execução da query e retorno)
+            console.log('🛠️ Executando query CORRIGIDA:', sql);
+            console.log('📦 Valores (7 parâmetros):', values);
 
-            // ... (Bloco catch)
+            const [result] = await connection.execute(sql, values);
+            console.log('✅ Usuário inserido no Aiven. ID:', result.insertId);
+
+            const [users] = await connection.execute(
+                `SELECT id, nome, email, tipo, telefone, cep, endereco, 
+                 criado_em, atualizado_em 
+                 FROM usuarios WHERE id = ?`,
+                [result.insertId]
+            );
+
+            const userCriado = users[0];
+            console.log('🎉 USUÁRIO CRIADO COM SUCESSO:', userCriado.email);
+            
+            return userCriado;
+            
         } catch (error) {
             console.error('💥 ERRO CRÍTICO no User.create:');
             console.error('🔴 Código:', error.code);
             console.error('📝 Mensagem:', error.message);
             console.error('🔍 Stack:', error.stack);
             
-            // ... (restante do bloco catch)
+            if (error.code === 'ER_DUP_ENTRY') {
+                throw new Error('Email já está cadastrado');
+            }
+            
             throw new Error('Erro ao criar usuário: ' + error.message);
         }
     }
-    // ... (restante da classe User)
+
+    // ESTA FUNÇÃO ESTAVA FALTANDO OU QUEBRADA E É REQUERIDA PELO AuthController
+    static async findByEmail(email) {
+        try {
+            console.log('🔍 Buscando usuário por email:', email);
+            const connection = await db;
+            const [users] = await connection.execute(
+                'SELECT * FROM usuarios WHERE email = ?',
+                [email]
+            );
+            console.log('✅ Busca concluída. Encontrados:', users.length);
+            return users[0];
+        } catch (error) {
+            console.error('❌ Erro no User.findByEmail:', error);
+            throw error;
+        }
+    }
+
+    static async findById(id) {
+        try {
+            const connection = await db;
+            const [users] = await connection.execute(
+                `SELECT id, nome, email, tipo, telefone, cep, endereco, 
+                 criado_em, atualizado_em 
+                 FROM usuarios WHERE id = ?`,
+                [id]
+            );
+            return users[0];
+        } catch (error) {
+            console.error('❌ Erro no User.findById:', error);
+            throw error;
+        }
+    }
 }
+
 module.exports = User;

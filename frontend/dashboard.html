@@ -113,93 +113,86 @@
     <script src="js/auth.js"></script>
     <script src="js/services.js"></script>
     
-    <script>
-        // Verificar autenticação
-        if (!auth.isLoggedIn()) {
-            window.location.href = 'login.html';
-        }
+   <script>
+    // Verificar autenticação
+    if (!auth.isLoggedIn()) {
+        alert('⚠️ Você precisa estar logado para acessar esta página');
+        window.location.href = 'login.html';
+    }
 
-        // Logout
-        document.getElementById('logoutBtn').addEventListener('click', function(e) {
-            e.preventDefault();
-            auth.logout();
-            window.location.href = 'index.html';
-        });
+    // Logout
+    document.getElementById('logoutBtn').addEventListener('click', function(e) {
+        e.preventDefault();
+        auth.handleLogout();
+    });
 
-        // Carregar dados do dashboard
-        async function loadDashboard() {
-            try {
-                const user = auth.getCurrentUser();
-                if (!user) {
-                    window.location.href = 'login.html';
-                    return;
-                }
-
-                // Atualizar mensagem de boas-vindas
-                document.getElementById('userWelcome').innerHTML = `
-                    <h2>Olá, ${user.nome}!</h2>
-                    <p>Bem-vindo(a) de volta à Comunidade Conectada</p>
-                `;
-
-                // Mostrar seção baseada no tipo de usuário
-                if (user.tipo === 'prestador') {
-                    document.getElementById('prestadorSection').style.display = 'block';
-                    await loadPrestadorData();
-                } else {
-                    document.getElementById('moradorSection').style.display = 'block';
-                }
-
-                // Carregar informações do perfil
-                await loadProfileInfo();
-
-            } catch (error) {
-                console.error('Erro ao carregar dashboard:', error);
-                utils.showError('Erro ao carregar dados do painel');
+    // Carregar dados do dashboard
+    async function loadDashboard() {
+        try {
+            const user = auth.getCurrentUser();
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
             }
-        }
 
-        async function loadPrestadorData() {
-            try {
-                const myServices = await services.getMyServices();
-                const servicesList = document.getElementById('myServicesList');
-                
-                if (myServices.services && myServices.services.length > 0) {
-                    servicesList.innerHTML = myServices.services.slice(0, 3).map(service => `
-                        <div class="service-mini-item">
-                            <h4>${service.nome_servico}</h4>
-                            <p>R$ ${service.valor}</p>
-                        </div>
-                    `).join('');
-                    
-                    document.getElementById('totalServices').textContent = myServices.services.length;
-                } else {
-                    servicesList.innerHTML = '<p>Nenhum serviço cadastrado ainda.</p>';
-                }
-            } catch (error) {
-                console.error('Erro ao carregar serviços do prestador:', error);
+            // Atualizar mensagem de boas-vindas
+            document.getElementById('userWelcome').innerHTML = `
+                <h2>Olá, ${user.nome}!</h2>
+                <p>Bem-vindo(a) de volta à Comunidade Conectada</p>
+            `;
+
+            // Mostrar seção baseada no tipo de usuário
+            if (user.tipo === 'prestador') {
+                document.getElementById('prestadorSection').style.display = 'block';
+                await loadPrestadorData();
+            } else {
+                document.getElementById('moradorSection').style.display = 'block';
             }
-        }
 
-        async function loadProfileInfo() {
-            try {
-                const profile = await auth.getProfile();
-                document.getElementById('profileInfo').innerHTML = `
-                    <p><strong>Nome:</strong> ${profile.user.nome}</p>
-                    <p><strong>E-mail:</strong> ${profile.user.email}</p>
-                    <p><strong>Tipo:</strong> ${profile.user.tipo === 'prestador' ? 'Prestador de Serviços' : 'Morador'}</p>
-                    ${profile.user.endereco ? `<p><strong>Endereço:</strong> ${profile.user.endereco}</p>` : ''}
-                `;
-            } catch (error) {
-                console.error('Erro ao carregar perfil:', error);
-            }
-        }
+            // Carregar informações do perfil
+            await loadProfileInfo();
 
-        function editarPerfil() {
-            utils.showMessage('Funcionalidade em desenvolvimento', 'info');
+        } catch (error) {
+            console.error('Erro ao carregar dashboard:', error);
+            alert('Erro ao carregar dados do painel');
         }
+    }
 
-        // Carregar dashboard quando a página carregar
-        document.addEventListener('DOMContentLoaded', loadDashboard);
-    </script>
+    async function loadPrestadorData() {
+        try {
+            // Simular carregamento de serviços (substitua pela sua API real)
+            document.getElementById('totalServices').textContent = '0';
+            document.getElementById('totalViews').textContent = '0';
+            
+            // Exemplo de como seria com API real:
+            // const myServices = await services.getMyServices();
+            // document.getElementById('totalServices').textContent = myServices.length;
+            
+        } catch (error) {
+            console.error('Erro ao carregar serviços do prestador:', error);
+        }
+    }
+
+    async function loadProfileInfo() {
+        try {
+            const user = auth.getCurrentUser();
+            document.getElementById('profileInfo').innerHTML = `
+                <p><strong>Nome:</strong> ${user.nome}</p>
+                <p><strong>E-mail:</strong> ${user.email}</p>
+                <p><strong>Tipo:</strong> ${user.tipo === 'prestador' ? 'Prestador de Serviços' : 'Morador'}</p>
+                ${user.endereco ? `<p><strong>Endereço:</strong> ${user.endereco}</p>` : ''}
+            `;
+        } catch (error) {
+            console.error('Erro ao carregar perfil:', error);
+        }
+    }
+
+    function editarPerfil() {
+        alert('Funcionalidade em desenvolvimento');
+    }
+
+    // Carregar dashboard quando a página carregar
+    document.addEventListener('DOMContentLoaded', loadDashboard);
+</script>
 </body>
 </html>

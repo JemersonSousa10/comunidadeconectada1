@@ -16,8 +16,32 @@
   ],
   "routes": [
     {
-      "src": "/(.*)",
+      "src": "/",
       "dest": "/index.html"
+    },
+    {
+      "src": "/login",
+      "dest": "/login.html"
+    },
+    {
+      "src": "/cadastro", 
+      "dest": "/cadastro.html"
+    },
+    {
+      "src": "/services",
+      "dest": "/services.html"
+    },
+    {
+      "src": "/dashboard",
+      "dest": "/dashboard.html"
+    },
+    {
+      "src": "/cadastro-service",
+      "dest": "/cadastro-service.html"
+    },
+    {
+      "src": "/(.*\\.html)",
+      "dest": "/$1"
     }
   ]
 }

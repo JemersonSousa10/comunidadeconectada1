@@ -158,20 +158,85 @@
         }
     }
 
-    async function loadPrestadorData() {
-        try {
-            // Simular carregamento de serviços (substitua pela sua API real)
-            document.getElementById('totalServices').textContent = '0';
-            document.getElementById('totalViews').textContent = '0';
-            
-            // Exemplo de como seria com API real:
-            // const myServices = await services.getMyServices();
-            // document.getElementById('totalServices').textContent = myServices.length;
-            
-        } catch (error) {
-            console.error('Erro ao carregar serviços do prestador:', error);
+    // SUBSTITUIR APENAS ESTA FUNÇÃO no dashboard.html existente
+async function loadPrestadorData() {
+    try {
+        // Use a API do seu api.js
+        const myServices = await api.get('/services/my-services');
+        
+        // Atualizar estatísticas
+        document.getElementById('totalServices').textContent = myServices.length;
+        document.getElementById('totalViews').textContent = myServices.reduce((sum, service) => sum + (service.visualizacoes || 0), 0);
+        
+        // Atualizar lista de serviços
+        const servicesList = document.getElementById('myServicesList');
+        if (myServices.length === 0) {
+            servicesList.innerHTML = '<p>Nenhum serviço cadastrado ainda.</p>';
+        } else {
+            servicesList.innerHTML = myServices.map(service => `
+                <div class="service-mini-item">
+                    <h4>${service.nome_servico}</h4>
+                    <p>R$ ${service.valor} - ${service.categoria}</p>
+                    <small>${service.descricao.substring(0, 50)}...</small>
+                    <div class="service-mini-actions">
+                        <button class="btn-small" onclick="editarServico(${service.id})">Editar</button>
+                        <button class="btn-small btn-danger" onclick="excluirServico(${service.id})">Excluir</button>
+                    </div>
+                </div>
+            `).join('');
         }
+        
+    } catch (error) {
+        console.error('Erro ao carregar serviços do prestador:', error);
+        document.getElementById('myServicesList').innerHTML = '<p>Erro ao carregar serviços.</p>';
     }
+}
+
+// Função de exclusão atualizada para usar sua API
+async function excluirServico(servicoId) {
+    if (!confirm('Tem certeza que deseja excluir este serviço?')) return;
+    
+    try {
+        await api.delete(`/services/${servicoId}`);
+        alert('✅ Serviço excluído com sucesso!');
+        loadPrestadorData(); // Recarregar a lista
+        
+    } catch (error) {
+        console.error('Erro:', error);
+        alert('❌ Erro ao excluir serviço');
+    }
+}
+
+
+// Adicionar estas funções auxiliares no dashboard.html
+async function excluirServico(servicoId) {
+    if (!confirm('Tem certeza que deseja excluir este serviço?')) return;
+    
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_BASE}/services/${servicoId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (!response.ok) throw new Error('Erro ao excluir serviço');
+        
+        alert('✅ Serviço excluído com sucesso!');
+        loadPrestadorData(); // Recarregar a lista
+        
+    } catch (error) {
+        console.error('Erro:', error);
+        alert('❌ Erro ao excluir serviço');
+    }
+}
+
+function editarServico(servicoId) {
+    alert(`Editar serviço ${servicoId} - Funcionalidade em desenvolvimento`);
+    // Futuramente redirecionar para página de edição
+    // window.location.href = `editar-servico.html?id=${servicoId}`;
+}
 
     async function loadProfileInfo() {
         try {
@@ -195,16 +260,5 @@
     document.addEventListener('DOMContentLoaded', loadDashboard);
 </script>
 
-<script>
-    // Adicionar logout dinamicamente
-    document.addEventListener('DOMContentLoaded', function() {
-        // Pequeno delay para garantir que o auth.js carregou
-        setTimeout(() => {
-            if (typeof addLogoutButton === 'function') {
-                addLogoutButton();
-            }
-        }, 100);
-    });
-</script>
 </body>
 </html>

@@ -1,352 +1,172 @@
+const API_BASE = window.API_BASE_URL || 'https://comunidade-conectada-backend.onrender.com/';
+
 const services = {
-    // Carregar todos os serviços
-    loadServices: async (filters = {}) => {
-        const loadingIndicator = document.getElementById('loadingIndicator');
-        const servicesGrid = document.getElementById('servicesGrid');
-        const noServicesMessage = document.getElementById('noServicesMessage');
-        const loadMoreContainer = document.getElementById('loadMoreContainer');
-
+    async loadServices() {
         try {
-            loadingIndicator.style.display = 'block';
-            servicesGrid.style.display = 'none';
-            noServicesMessage.style.display = 'none';
-            loadMoreContainer.style.display = 'none';
-
-            let endpoint = '/services';
+            this.showLoading(true);
+            
+            // Obter valores dos filtros
+            const search = document.getElementById('searchInput').value;
+            const category = document.getElementById('categoryFilter').value;
+            const sort = document.getElementById('sortFilter').value;
+            
+            // Construir URL com parâmetros de busca e filtros
+            let url = `${API_BASE}/services`;
             const params = new URLSearchParams();
-
-            // Aplicar filtros
-            if (filters.search) {
-                params.append('q', filters.search);
+            
+            if (search) params.append('q', search);
+            if (category) params.append('categoria', category);
+            if (sort) params.append('ordenar', sort);
+            
+            if (params.toString()) {
+                url += `?${params.toString()}`;
             }
-            if (filters.category) {
-                endpoint = `/services/category/${filters.category}`;
-            }
-
-            const queryString = params.toString();
-            const fullEndpoint = queryString ? `${endpoint}?${queryString}` : endpoint;
-
-            const result = await window.api.get(fullEndpoint, { public: true });
-            const servicesList = result.services || [];
-
-            // Exibir serviços
-            if (servicesList.length > 0) {
-                servicesGrid.innerHTML = servicesList.map(service => 
-                    services.createServiceCard(service)
-                ).join('');
-                
-                servicesGrid.style.display = 'grid';
-                noServicesMessage.style.display = 'none';
-                
-                // Mostrar botão "carregar mais" se houver muitos serviços
-                if (servicesList.length >= 6) {
-                    loadMoreContainer.style.display = 'block';
-                }
-            } else {
-                servicesGrid.style.display = 'none';
-                noServicesMessage.style.display = 'block';
-                loadMoreContainer.style.display = 'none';
-            }
-
+            
+            // Use a API do seu api.js em vez de fetch direto
+            const servicos = await api.get(url);
+            this.displayServices(servicos);
+            
         } catch (error) {
             console.error('Erro ao carregar serviços:', error);
-            window.utils.showError('Erro ao carregar serviços. Tente novamente.');
-            noServicesMessage.style.display = 'block';
-            noServicesMessage.innerHTML = '<p>Erro ao carregar serviços. Tente novamente.</p>';
+            alert('Erro ao carregar serviços. Tente novamente.');
         } finally {
-            loadingIndicator.style.display = 'none';
+            this.showLoading(false);
         }
     },
-
-    // Criar card de serviço
-    createServiceCard: (service) => {
-        const description = service.descricao.length > 150 
-            ? service.descricao.substring(0, 150) + '...' 
-            : service.descricao;
-
-        return `
-            <div class="service-card" role="listitem" 
-                 onclick="services.openServiceModal(${service.id})"
-                 tabindex="0"
-                 aria-label="${service.nome_servico} - ${window.utils.formatCurrency(service.valor)}"
-                 onkeypress="if(event.key === 'Enter') services.openServiceModal(${service.id})">
-                
-                <div class="service-header">
-                    <div>
-                        <h3 class="service-title">${window.utils.sanitizeInput(service.nome_servico)}</h3>
-                        <span class="service-category">${window.utils.sanitizeInput(service.categoria)}</span>
-                    </div>
-                    <div class="service-price">${window.utils.formatCurrency(service.valor)}</div>
+    
+    displayServices(servicos) {
+        const grid = document.getElementById('servicesGrid');
+        const noServices = document.getElementById('noServicesMessage');
+        
+        if (servicos.length === 0) {
+            grid.style.display = 'none';
+            noServices.style.display = 'block';
+            return;
+        }
+        
+        grid.style.display = 'grid';
+        noServices.style.display = 'none';
+        
+        grid.innerHTML = servicos.map(servico => `
+            <div class="servico-card" role="listitem">
+                <h3>${servico.nome_servico}</h3>
+                <p>${servico.descricao}</p>
+                <div class="servico-meta">
+                    <span class="categoria">${servico.categoria}</span>
+                    <span class="preco">R$ ${servico.valor}</span>
                 </div>
+                <p class="prestador">Por: ${servico.prestador_nome}</p>
+                <button onclick="services.verDetalhes(${servico.id})" class="btn btn-outline">
+                    Ver Detalhes
+                </button>
+            </div>
+        `).join('');
+    },
+    
+    async verDetalhes(servicoId) {
+    try {
+        // Use a API do seu api.js
+        const servico = await api.get(`/services/${servicoId}`);
+        this.openServiceModal(servico);
+        
+    } catch (error) {
+        console.error('Erro:', error);
+        // Fallback: modal simples com dados básicos
+        this.openSimpleModal(servicoId);
+    }
+},
+    
+    openServiceModal(servico) {
+        const modal = document.getElementById('serviceModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalBody = document.getElementById('modalBody');
+        
+        modalTitle.textContent = servico.nome_servico;
+        modalBody.innerHTML = `
+            <div class="modal-service-details">
+                <p><strong>Descrição:</strong> ${servico.descricao}</p>
+                <p><strong>Categoria:</strong> ${servico.categoria}</p>
+                <p><strong>Valor:</strong> R$ ${servico.valor}</p>
+                <p><strong>Contato:</strong> ${servico.contato}</p>
+                ${servico.localizacao ? `<p><strong>Localização:</strong> ${servico.localizacao}</p>` : ''}
+                <p><strong>Prestador:</strong> ${servico.prestador_nome}</p>
                 
-                <p class="service-description">${window.utils.sanitizeInput(description)}</p>
-                
-                <div class="service-footer">
-                    <span class="service-prestador">Por: ${window.utils.sanitizeInput(service.prestador_nome)}</span>
-                    <a href="#" class="service-contact" onclick="event.stopPropagation(); services.contactService(${service.id})">
-                        Contatar
-                    </a>
+                <div class="modal-actions">
+                    <button class="btn btn-primary" onclick="services.contatarPrestador('${servico.contato}', '${servico.nome_servico}')">
+                        📞 Contatar
+                    </button>
+                    <button class="btn btn-outline" onclick="services.favoritarServico(${servico.id})">
+                        ⭐ Favoritar
+                    </button>
                 </div>
             </div>
         `;
-    },
-
-    // Abrir modal de detalhes do serviço
-    openServiceModal: async (serviceId) => {
-        try {
-            const result = await window.api.get('/services', { public: true });
-            const service = result.services.find(s => s.id === serviceId);
-            
-            if (!service) {
-                throw new Error('Serviço não encontrado');
-            }
-
-            const modal = document.getElementById('serviceModal');
-            const modalTitle = document.getElementById('modalTitle');
-            const modalBody = document.getElementById('modalBody');
-
-            modalTitle.textContent = service.nome_servico;
-            
-            modalBody.innerHTML = `
-                <div class="service-details">
-                    <div class="detail-row">
-                        <strong>Categoria:</strong>
-                        <span>${window.utils.sanitizeInput(service.categoria)}</span>
-                    </div>
-                    
-                    <div class="detail-row">
-                        <strong>Prestador:</strong>
-                        <span>${window.utils.sanitizeInput(service.prestador_nome)}</span>
-                    </div>
-                    
-                    <div class="detail-row">
-                        <strong>Valor:</strong>
-                        <span class="service-price-large">${window.utils.formatCurrency(service.valor)}</span>
-                    </div>
-                    
-                    <div class="detail-row">
-                        <strong>Descrição:</strong>
-                        <p>${window.utils.sanitizeInput(service.descricao)}</p>
-                    </div>
-                    
-                    ${service.localizacao ? `
-                    <div class="detail-row">
-                        <strong>Localização:</strong>
-                        <span>${window.utils.sanitizeInput(service.localizacao)}</span>
-                    </div>
-                    ` : ''}
-                    
-                    <div class="detail-row">
-                        <strong>Contato:</strong>
-                        <span>${window.utils.sanitizeInput(service.contato)}</span>
-                    </div>
-                    
-                    <div class="detail-row">
-                        <strong>Publicado em:</strong>
-                        <span>${window.utils.formatDate(service.criado_em)}</span>
-                    </div>
-                    
-                    <div class="modal-actions">
-                        <button class="btn btn-primary" onclick="services.contactService(${service.id})">
-                            📞 Entrar em Contato
-                        </button>
-                        <button class="btn btn-outline" onclick="window.utils.copyToClipboard('${service.contato}')">
-                            📋 Copiar Contato
-                        </button>
-                    </div>
-                </div>
-            `;
-
-            modal.style.display = 'block';
-            modal.setAttribute('aria-hidden', 'false');
-
-        } catch (error) {
-            console.error('Erro ao abrir modal:', error);
-            window.utils.showError('Erro ao carregar detalhes do serviço');
-        }
-    },
-
-    // Contatar serviço
-    contactService: (serviceId) => {
-        // Em uma implementação real, isso poderia abrir WhatsApp, email, etc.
-        window.utils.showMessage('Funcionalidade de contato em desenvolvimento', 'info');
         
-        // Simulação de contato
+        modal.style.display = 'block';
+        modal.setAttribute('aria-hidden', 'false');
+    },
+    
+    openSimpleModal(servicoId) {
         const modal = document.getElementById('serviceModal');
-        modal.style.display = 'none';
-        modal.setAttribute('aria-hidden', 'true');
-    },
-
-    // Buscar serviços com filtros
-    searchServices: async () => {
-        const searchInput = document.getElementById('searchInput');
-        const categoryFilter = document.getElementById('categoryFilter');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalBody = document.getElementById('modalBody');
         
-        const filters = {};
+        modalTitle.textContent = 'Detalhes do Serviço';
+        modalBody.innerHTML = `
+            <div class="modal-service-details">
+                <p>Detalhes completos em desenvolvimento.</p>
+                <p><strong>ID do Serviço:</strong> ${servicoId}</p>
+                <div class="modal-actions">
+                    <button class="btn btn-primary" onclick="alert('Funcionalidade de contato em desenvolvimento')">
+                        📞 Contatar
+                    </button>
+                </div>
+            </div>
+        `;
         
-        if (searchInput.value.trim()) {
-            filters.search = searchInput.value.trim();
-        }
+        modal.style.display = 'block';
+        modal.setAttribute('aria-hidden', 'false');
+    },
+    
+    contatarPrestador(contato, servicoNome) {
+        const mensagem = `Olá, gostaria de saber mais sobre o serviço: ${servicoNome}`;
         
-        if (categoryFilter.value) {
-            filters.category = categoryFilter.value;
-        }
-
-        await services.loadServices(filters);
-    },
-
-    // Obter serviços do usuário logado (para prestadores)
-    getMyServices: async () => {
-        try {
-            return await window.api.get('/services/my-services');
-        } catch (error) {
-            console.error('Erro ao obter meus serviços:', error);
-            throw error;
+        // Verificar se é WhatsApp (número de telefone)
+        if (contato.replace(/\D/g, '').length >= 10) {
+            const telefone = contato.replace(/\D/g, '');
+            const whatsappUrl = `https://wa.me/55${telefone}?text=${encodeURIComponent(mensagem)}`;
+            window.open(whatsappUrl, '_blank');
+        } else if (contato.includes('@')) {
+            // É email
+            const emailUrl = `mailto:${contato}?subject=Interesse no serviço: ${servicoNome}&body=${encodeURIComponent(mensagem)}`;
+            window.location.href = emailUrl;
+        } else {
+            // Outro tipo de contato
+            alert(`Contato: ${contato}\n\nServiço: ${servicoNome}`);
         }
     },
-
-    // Criar novo serviço
-    createService: async (serviceData) => {
-        try {
-            const result = await window.api.post('/services', serviceData);
-            window.utils.showSuccess('Serviço criado com sucesso!');
-            return result;
-        } catch (error) {
-            console.error('Erro ao criar serviço:', error);
-            throw error;
+    
+    favoritarServico(servicoId) {
+        let favoritos = JSON.parse(localStorage.getItem('favoritos') || '[]');
+        
+        if (!favoritos.includes(servicoId)) {
+            favoritos.push(servicoId);
+            localStorage.setItem('favoritos', JSON.stringify(favoritos));
+            alert('⭐ Serviço adicionado aos favoritos!');
+        } else {
+            alert('✅ Serviço já está nos favoritos!');
         }
     },
-
-    // Deletar serviço
-    deleteService: async (serviceId) => {
-        if (!confirm('Tem certeza que deseja excluir este serviço?')) {
-            return false;
+    
+    showLoading(show) {
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        if (loadingIndicator) {
+            loadingIndicator.style.display = show ? 'block' : 'none';
         }
-
-        try {
-            await window.api.delete(`/services/${serviceId}`);
-            window.utils.showSuccess('Serviço excluído com sucesso!');
-            return true;
-        } catch (error) {
-            console.error('Erro ao excluir serviço:', error);
-            window.utils.showError('Erro ao excluir serviço');
-            return false;
-        }
-    },
-
-    // Obter categorias disponíveis (hardcoded por enquanto)
-    getCategories: () => {
-        return [
-            { value: 'reparos', label: 'Reparos Domésticos' },
-            { value: 'limpeza', label: 'Limpeza' },
-            { value: 'aulas', label: 'Aulas Particulares' },
-            { value: 'cuidados', label: 'Cuidados Pessoais' },
-            { value: 'tecnologia', label: 'Tecnologia' },
-            { value: 'eventos', label: 'Eventos' },
-            { value: 'outros', label: 'Outros' }
-        ];
     }
 };
 
-// Handler para cadastro de serviço
-async function handleServiceCreate(event) {
-    event.preventDefault();
-    
-    if (!window.auth.requirePrestador()) return;
-    
-    const form = event.target;
-    const submitBtn = form.querySelector('button[type="submit"]');
-    window.utils.setLoading(submitBtn, true);
-
-    try {
-        const formData = {
-            nome_servico: document.getElementById('nome_servico').value,
-            categoria: document.getElementById('categoria').value,
-            descricao: document.getElementById('descricao').value,
-            valor: parseFloat(document.getElementById('valor').value),
-            contato: document.getElementById('contato').value,
-            localizacao: document.getElementById('localizacao').value
-        };
-
-        await services.createService(formData);
-        
-        // Redirecionar para dashboard
-        setTimeout(() => {
-            window.location.href = 'dashboard.html';
-        }, 1500);
-
-    } catch (error) {
-        console.error('Erro ao criar serviço:', error);
-        window.utils.handleError(error, 'Erro ao criar serviço');
-    } finally {
-        window.utils.setLoading(submitBtn, false);
-    }
-}
-
-// Inicializar serviços quando a página carregar
+// Função para carregar serviços ao iniciar a página
 document.addEventListener('DOMContentLoaded', function() {
-    // Adicionar CSS para modal
-    const style = document.createElement('style');
-    style.textContent = `
-        .service-details .detail-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        .service-details .detail-row strong {
-            min-width: 120px;
-            color: var(--text-primary);
-        }
-        
-        .service-details .detail-row span,
-        .service-details .detail-row p {
-            flex: 1;
-            text-align: right;
-            margin: 0;
-        }
-        
-        .service-price-large {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--success-color);
-        }
-        
-        .modal-actions {
-            display: flex;
-            gap: 1rem;
-            margin-top: 2rem;
-            justify-content: center;
-        }
-        
-        .loading-spinner {
-            display: inline-block;
-            width: 1rem;
-            height: 1rem;
-            border: 2px solid #ffffff;
-            border-radius: 50%;
-            border-top-color: transparent;
-            animation: spin 1s ease-in-out infinite;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        body.loading {
-            cursor: wait;
-        }
-        
-        body.loading * {
-            cursor: wait !important;
-        }
-    `;
-    document.head.appendChild(style);
+    services.loadServices();
 });
-
-// Export para uso global
-window.services = services;
-window.handleServiceCreate = handleServiceCreate;

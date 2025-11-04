@@ -130,45 +130,86 @@
     <script src="js/utils.js"></script>
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
-    <script src="js/services.js"></script>
     
-   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Verificar autenticação e se é prestador
-        if (!auth.isLoggedIn()) {
-            alert('⚠️ Você precisa estar logado para acessar esta página');
-            window.location.href = 'login.html';
-            return;
-        }
+    <script>
+        // Configuração da API - ATUALIZE COM SUA URL
+        const API_BASE = 'https://comunidade-conectada-backend.onrender.com/';
         
-        const user = auth.getCurrentUser();
-        if (user.tipo !== 'prestador') {
-            alert('❌ Apenas prestadores de serviços podem cadastrar serviços');
-            window.location.href = 'dashboard.html';
-            return;
-        }
+        document.addEventListener('DOMContentLoaded', function() {
+            // Verificar autenticação e se é prestador
+            if (!auth.isLoggedIn()) {
+                alert('⚠️ Você precisa estar logado para acessar esta página');
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            const user = auth.getCurrentUser();
+            if (user.tipo !== 'prestador') {
+                alert('❌ Apenas prestadores de serviços podem cadastrar serviços');
+                window.location.href = 'dashboard.html';
+                return;
+            }
 
-        // Logout
-        document.getElementById('logoutBtn').addEventListener('click', function(e) {
-            e.preventDefault();
-            auth.handleLogout();
+            // Logout
+            document.getElementById('logoutBtn').addEventListener('click', function(e) {
+                e.preventDefault();
+                auth.handleLogout();
+            });
+
+            // Form submission
+            document.getElementById('servicoForm').addEventListener('submit', handleServiceCreate);
         });
 
-        // Form submission
-        document.getElementById('servicoForm').addEventListener('submit', handleServiceCreate);
-    });
-</script>
+     async function handleServiceCreate(e) {
+    e.preventDefault();
+    
+    const submitBtn = document.getElementById('submitBtn');
+    const originalText = submitBtn.textContent;
+    
+    try {
+        submitBtn.textContent = 'Cadastrando...';
+        submitBtn.disabled = true;
+        
+        const formData = {
+            nome_servico: document.getElementById('nome_servico').value,
+            categoria: document.getElementById('categoria').value,
+            descricao: document.getElementById('descricao').value,
+            valor: parseFloat(document.getElementById('valor').value),
+            contato: document.getElementById('contato').value,
+            localizacao: document.getElementById('localizacao').value
+        };
+        
+        // Validações básicas
+        if (formData.valor < 0) {
+            throw new Error('O valor deve ser positivo');
+        }
+        
+        // Use a API do seu api.js
+        const result = await api.post('/services', formData);
+        
+        alert('✅ Serviço cadastrado com sucesso!');
+        window.location.href = 'dashboard.html';
+        
+    } catch (error) {
+        console.error('Erro:', error);
+        alert(`❌ Erro: ${error.message}`);
+    } finally {
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+    }
+}
+    </script>
 
-<script>
-    // Adicionar logout dinamicamente
-    document.addEventListener('DOMContentLoaded', function() {
-        // Pequeno delay para garantir que o auth.js carregou
-        setTimeout(() => {
-            if (typeof addLogoutButton === 'function') {
-                addLogoutButton();
-            }
-        }, 100);
-    });
-</script>
+    <script>
+        // Adicionar logout dinamicamente
+        document.addEventListener('DOMContentLoaded', function() {
+            // Pequeno delay para garantir que o auth.js carregou
+            setTimeout(() => {
+                if (typeof addLogoutButton === 'function') {
+                    addLogoutButton();
+                }
+            }, 100);
+        });
+    </script>
 </body>
 </html>

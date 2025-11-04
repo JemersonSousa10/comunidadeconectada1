@@ -168,5 +168,22 @@
             });
         });
     </script>
+
+    <script>
+    // Verificação de autenticação para services.html
+    document.addEventListener('DOMContentLoaded', function() {
+        const token = localStorage.getItem('token');
+        const user = localStorage.getItem('user');
+        
+        // Se não está logado, redirecionar para login
+        if (!token || !user) {
+            alert('⚠️ Você precisa estar logado para acessar esta página');
+            window.location.href = 'login.html';
+            return;
+        }
+        
+        console.log('✅ Usuário autenticado, página de serviços carregada');
+    });
+</script>
 </body>
 </html>

@@ -217,6 +217,7 @@ function isValidEmail(email) {
 }
 
 // Verificar estado de autenticação
+// VERSAÃO CORRIGIDA - função checkAuthState única e completa
 function checkAuthState() {
     const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
@@ -226,12 +227,14 @@ function checkAuthState() {
             currentUser = JSON.parse(userData);
             console.log('👤 Usuário autenticado:', currentUser);
             updateUIForAuthState(true);
+            updateNavigation(); // ← AGORA ESTÁ SENDO CHAMADA!
         } catch (error) {
             console.error('❌ Erro ao parsear dados do usuário:', error);
             clearAuthData();
         }
     } else {
         updateUIForAuthState(false);
+        updateNavigation(); // ← AGORA ESTÁ SENDO CHAMADA AQUI TAMBÉM!
     }
 }
 

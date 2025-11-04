@@ -292,13 +292,12 @@ function requirePrestador() {
 
 // Logout
 function handleLogout() {
-    console.log('👋 Realizando logout...');
+    console.log('👋 Realizando logout silencioso...');
     
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     currentUser = null;
     
-    alert('✅ Logout realizado com sucesso!');
     window.location.href = 'index.html';
 }
 

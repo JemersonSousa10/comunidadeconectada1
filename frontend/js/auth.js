@@ -324,4 +324,79 @@ function clearAuthData() {
     currentUser = null;
 }
 
+// Função para adicionar botão de logout dinamicamente
+function addLogoutButton() {
+    // Verificar se já existe um botão de logout
+    if (document.querySelector('.logout-btn')) return;
+    
+    // Procurar o menu de navegação
+    const navMenu = document.querySelector('.nav-menu');
+    if (!navMenu) return;
+    
+    // Verificar se já está logado
+    if (!isLoggedIn()) return;
+    
+    // Criar botão de logout
+    const logoutLi = document.createElement('li');
+    logoutLi.innerHTML = '<a href="#" class="logout-btn">🚪 Sair</a>';
+    
+    // Adicionar evento de clique
+    const logoutBtn = logoutLi.querySelector('.logout-btn');
+    logoutBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        handleLogout();
+    });
+    
+    // Adicionar ao menu (no final)
+    navMenu.appendChild(logoutLi);
+}
+
+// Função para atualizar o menu de navegação baseado no estado de login
+function updateNavigation() {
+    const navMenu = document.querySelector('.nav-menu');
+    if (!navMenu) return;
+    
+    const isLogged = isLoggedIn();
+    
+    if (isLogged) {
+        // Remover links de login e cadastro se existirem
+        const loginLink = navMenu.querySelector('a[href="login.html"]');
+        const cadastroLink = navMenu.querySelector('a[href="cadastro.html"]');
+        
+        if (loginLink) loginLink.parentElement.remove();
+        if (cadastroLink) cadastroLink.parentElement.remove();
+        
+        // Adicionar link para dashboard se não existir
+        if (!navMenu.querySelector('a[href="dashboard.html"]')) {
+            const dashboardLi = document.createElement('li');
+            dashboardLi.innerHTML = '<a href="dashboard.html">Meu Painel</a>';
+            navMenu.appendChild(dashboardLi);
+        }
+        
+        // Adicionar botão de logout
+        addLogoutButton();
+    }
+}
+
+// Atualizar a função checkAuthState para incluir a navegação
+function checkAuthState() {
+    const token = localStorage.getItem('token');
+    const userData = localStorage.getItem('user');
+    
+    if (token && userData) {
+        try {
+            currentUser = JSON.parse(userData);
+            console.log('👤 Usuário autenticado:', currentUser);
+            updateUIForAuthState(true);
+            updateNavigation(); // ← ADICIONAR ESTA LINHA
+        } catch (error) {
+            console.error('❌ Erro ao parsear dados do usuário:', error);
+            clearAuthData();
+        }
+    } else {
+        updateUIForAuthState(false);
+        updateNavigation(); // ← ADICIONAR ESTA LINHA TAMBÉM
+    }
+}
+
 console.log('✅ auth.js carregado com sucesso!');

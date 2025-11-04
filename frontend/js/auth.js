@@ -1,4 +1,3 @@
-
 const API_BASE_URL = 'https://comunidade-conectada-backend.onrender.com';
 
 // Elementos globais
@@ -31,8 +30,7 @@ async function handleRegister(event) {
             tipo: document.querySelector('input[name="tipo"]:checked').value,
             telefone: document.getElementById('telefone') ? document.getElementById('telefone').value.trim() : '',
             endereco: document.getElementById('endereco').value.trim(),
-            cidade: document.getElementById('cidade').value.trim(),
-            estado: document.getElementById('estado').value.trim()
+            cep: document.getElementById('cep').value.trim()
         };
 
         console.log('📤 Dados coletados:', formData);
@@ -73,7 +71,7 @@ async function handleRegister(event) {
 
         console.log('✅ Todas validações passadas, enviando para API...');
 
-        // Fazer requisição para a API - CORRIGIDA A ROTA
+        // Fazer requisição para a API
         const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
             method: 'POST',
             headers: {
@@ -91,7 +89,6 @@ async function handleRegister(event) {
             alert('✅ Cadastro realizado com sucesso! Faça login para continuar.');
             window.location.href = 'login.html';
         } else {
-            // Tratar diferentes formatos de erro
             const errorMessage = data.error || data.message || 'Erro ao realizar cadastro';
             throw new Error(errorMessage);
         }
@@ -134,7 +131,7 @@ async function handleLogin(event) {
 
         console.log('📤 Enviando credenciais para login...');
 
-        // Fazer requisição para a API - CORRIGIDA A ROTA
+        // Fazer requisição para a API
         const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
             method: 'POST',
             headers: {
@@ -161,9 +158,9 @@ async function handleLogin(event) {
             
             // Redirecionar baseado no tipo de usuário
             if (data.user.tipo === 'prestador') {
-                window.location.href = 'dashboard-prestador.html';
+                window.location.href = 'dashboard.html';
             } else {
-                window.location.href = 'servicos.html';
+                window.location.href = 'services.html';
             }
         } else {
             const errorMessage = data.error || data.message || 'Erro ao fazer login';
@@ -243,27 +240,10 @@ function updateUIForAuthState(isAuthenticated) {
     // Implementação conforme necessário
 }
 
-// Função de logout
-function handleLogout() {
-    console.log('👋 Realizando logout...');
-    
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    currentUser = null;
-    
-    alert('✅ Logout realizado com sucesso!');
-    window.location.href = 'index.html';
-}
-
-// Limpar dados de autenticação
-function clearAuthData() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    currentUser = null;
-}
+// ===== FUNÇÕES NOVAS ADICIONADAS =====
 
 // Verificar se usuário está logado
-auth.isLoggedIn = function() {
+function isLoggedIn() {
     const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
     
@@ -281,23 +261,23 @@ auth.isLoggedIn = function() {
         console.error('Erro ao verificar token:', error);
         return false;
     }
-};
+}
 
 // Obter usuário atual
-auth.getCurrentUser = function() {
+function getCurrentUser() {
     const userData = localStorage.getItem('user');
     return userData ? JSON.parse(userData) : null;
-};
+}
 
 // Requer que usuário seja prestador
-auth.requirePrestador = function() {
-    if (!this.isLoggedIn()) {
+function requirePrestador() {
+    if (!isLoggedIn()) {
         alert('Você precisa estar logado para acessar esta página');
         window.location.href = 'login.html';
         return false;
     }
     
-    const user = this.getCurrentUser();
+    const user = getCurrentUser();
     if (user.tipo !== 'prestador') {
         alert('Apenas prestadores de serviços podem acessar esta página');
         window.location.href = 'dashboard.html';
@@ -305,32 +285,10 @@ auth.requirePrestador = function() {
     }
     
     return true;
-};
-
-// Obter perfil do usuário
-auth.getProfile = async function() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error('Erro ao carregar perfil');
-        }
-        
-        return await response.json();
-    } catch (error) {
-        console.error('Erro ao obter perfil:', error);
-        throw error;
-    }
-};
+}
 
 // Logout
-auth.handleLogout = function() {
+function handleLogout() {
     console.log('👋 Realizando logout...');
     
     localStorage.removeItem('token');
@@ -339,24 +297,31 @@ auth.handleLogout = function() {
     
     alert('✅ Logout realizado com sucesso!');
     window.location.href = 'index.html';
-};
+}
 
 // Verificar e redirecionar se já estiver logado
-auth.redirectIfLoggedIn = function() {
-    if (this.isLoggedIn()) {
+function redirectIfLoggedIn() {
+    if (isLoggedIn()) {
         window.location.href = 'services.html';
         return true;
     }
     return false;
-};
+}
 
 // Verificar e redirecionar se NÃO estiver logado
-auth.redirectIfNotLoggedIn = function() {
-    if (!this.isLoggedIn()) {
+function redirectIfNotLoggedIn() {
+    if (!isLoggedIn()) {
         window.location.href = 'login.html';
         return true;
     }
     return false;
-};
+}
+
+// Limpar dados de autenticação
+function clearAuthData() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    currentUser = null;
+}
 
 console.log('✅ auth.js carregado com sucesso!');

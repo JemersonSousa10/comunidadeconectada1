@@ -210,9 +210,9 @@
             const user = localStorage.getItem('user');
             
             if (token && user) {
-                alert('⚠️ Você já está logado! Redirecionando para serviços...');
-                window.location.href = 'services.html';
-                return;
+            console.log('🔄 Usuário já logado, redirecionando silenciosamente...');
+            window.location.href = 'services.html';
+            return;
             }
             
             // Configurar eventos

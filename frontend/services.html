@@ -185,5 +185,17 @@
         console.log('✅ Usuário autenticado, página de serviços carregada');
     });
 </script>
+
+<script>
+    // Adicionar logout dinamicamente
+    document.addEventListener('DOMContentLoaded', function() {
+        // Pequeno delay para garantir que o auth.js carregou
+        setTimeout(() => {
+            if (typeof addLogoutButton === 'function') {
+                addLogoutButton();
+            }
+        }, 100);
+    });
+</script>
 </body>
 </html>

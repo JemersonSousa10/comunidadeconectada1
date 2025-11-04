@@ -162,5 +162,18 @@
             }
         });
     </script>
+
+    <script>
+    // Verificar se já está logado e redirecionar
+    document.addEventListener('DOMContentLoaded', function() {
+        const token = localStorage.getItem('token');
+        const user = localStorage.getItem('user');
+        
+        if (token && user) {
+            alert('⚠️ Você já está logado! Redirecionando para serviços...');
+            window.location.href = 'services.html';
+        }
+    });
+</script>
 </body>
 </html>

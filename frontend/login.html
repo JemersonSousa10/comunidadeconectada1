@@ -153,27 +153,23 @@
                     }
                 });
             }
-            
-            // Verificar se já está logado
-            const token = localStorage.getItem('token');
-            if (token) {
-                console.log('✅ Usuário já logado, redirecionando...');
-                window.location.href = 'services.html';
-            }
+        
         });
     </script>
 
     <script>
-   // Verificar se já está logado e redirecionar (SILENCIOSO)
+
+// Verificar se já está logado - SEM redirecionamento
 document.addEventListener('DOMContentLoaded', function() {
     const token = localStorage.getItem('token');
     const user = localStorage.getItem('user');
     
     if (token && user) {
-        console.log('🔄 Usuário já logado, redirecionando silenciosamente...');
-        window.location.href = 'services.html';
+        console.log('✅ Usuário já logado, mantendo na página atual...');
+        // NÃO redireciona - permite acessar o logout
     }
 });
+
 </script>
 </body>
 </html>

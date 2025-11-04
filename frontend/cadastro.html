@@ -209,11 +209,11 @@
             const token = localStorage.getItem('token');
             const user = localStorage.getItem('user');
             
-            if (token && user) {
-            console.log('🔄 Usuário já logado, redirecionando silenciosamente...');
-            window.location.href = 'services.html';
-            return;
-            }
+           if (token && user) {
+           console.log('✅ Usuário já logado, mantendo na página atual...');
+           // NÃO redireciona - permite acessar o logout
+           return;
+           }
             
             // Configurar eventos
             const cadastroForm = document.getElementById('cadastroForm');

@@ -3,37 +3,75 @@ console.log('🔗 API_BASE:', API_BASE);
 
 const services = {
     async loadServices() {
-        try {
-            this.showLoading(true);
-            
-            // Obter valores dos filtros
-            const search = document.getElementById('searchInput').value;
-            const category = document.getElementById('categoryFilter').value;
-            const sort = document.getElementById('sortFilter').value;
-            
-            // Construir URL com parâmetros de busca e filtros
-            let url = `${API_BASE}/services`;
-            const params = new URLSearchParams();
-            
-            if (search) params.append('q', search);
-            if (category) params.append('categoria', category);
-            if (sort) params.append('ordenar', sort);
-            
-            if (params.toString()) {
-                url += `?${params.toString()}`;
-            }
-            
-            // Use a API do seu api.js em vez de fetch direto
-            const servicos = await api.get(url);
-            this.displayServices(servicos);
-            
-        } catch (error) {
-            console.error('Erro ao carregar serviços:', error);
-            alert('Erro ao carregar serviços. Tente novamente.');
-        } finally {
-            this.showLoading(false);
+    try {
+        console.log('🔍 Iniciando carregamento de serviços...');
+        this.showLoading(true);
+        
+        // Debug: verificar configurações
+        console.log('🌐 API_BASE:', API_BASE);
+        console.log('🔐 Token:', localStorage.getItem('token'));
+        console.log('👤 User:', localStorage.getItem('user'));
+        
+        // Obter valores dos filtros
+        const search = document.getElementById('searchInput').value;
+        const category = document.getElementById('categoryFilter').value;
+        const sort = document.getElementById('sortFilter').value;
+        
+        // Construir URL com parâmetros de busca e filtros
+        let url = `${API_BASE}/services`;
+        const params = new URLSearchParams();
+        
+        if (search) params.append('q', search);
+        if (category) params.append('categoria', category);
+        if (sort) params.append('ordenar', sort);
+        
+        if (params.toString()) {
+            url += `?${params.toString()}`;
         }
-    },
+        
+        console.log('🌐 URL completa:', url);
+        
+        // Fazer requisição DIRETA para debug
+        const token = localStorage.getItem('token');
+        const response = await fetch(url, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        console.log('📡 Status da resposta:', response.status);
+        console.log('🔗 Headers:', response.headers);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ Erro da API:', errorText);
+            throw new Error(`Erro ${response.status}: ${errorText}`);
+        }
+        
+        const servicos = await response.json();
+        console.log('✅ Serviços carregados:', servicos);
+        
+        this.displayServices(servicos);
+        
+    } catch (error) {
+        console.error('❌ Erro ao carregar serviços:', error);
+        alert('Erro ao carregar serviços. Verifique o console para detalhes.');
+        
+        // Fallback: mostrar mensagem amigável
+        document.getElementById('servicesGrid').innerHTML = `
+            <div class="error-message">
+                <h3>😕 Não foi possível carregar os serviços</h3>
+                <p>Erro: ${error.message}</p>
+                <button onclick="services.loadServices()" class="btn btn-primary">
+                    🔄 Tentar novamente
+                </button>
+            </div>
+        `;
+    } finally {
+        this.showLoading(false);
+    }
+},
     
     displayServices(servicos) {
         const grid = document.getElementById('servicesGrid');

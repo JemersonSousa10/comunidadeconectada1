@@ -162,6 +162,7 @@
 
      async function handleServiceCreate(e) {
     e.preventDefault();
+    console.log('🎯 Iniciando cadastro de serviço...');
     
     const submitBtn = document.getElementById('submitBtn');
     const originalText = submitBtn.textContent;
@@ -169,7 +170,8 @@
     try {
         submitBtn.textContent = 'Cadastrando...';
         submitBtn.disabled = true;
-        
+
+        // Coletar dados
         const formData = {
             nome_servico: document.getElementById('nome_servico').value,
             categoria: document.getElementById('categoria').value,
@@ -178,26 +180,53 @@
             contato: document.getElementById('contato').value,
             localizacao: document.getElementById('localizacao').value
         };
+
+        console.log('📤 Dados do serviço:', formData);
         
-        // Validações básicas
+        // Validações
         if (formData.valor < 0) {
             throw new Error('O valor deve ser positivo');
         }
+
+        // Debug: verificar token e URL
+        const token = localStorage.getItem('token');
+        console.log('🔐 Token disponível:', !!token);
+        console.log('👤 Usuário:', JSON.parse(localStorage.getItem('user')));
+        console.log('🌐 API_BASE:', window.API_BASE_URL);
+
+        // Fazer requisição DIRETA para debug
+        const response = await fetch(`${window.API_BASE_URL}/services`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(formData)
+        });
+
+        console.log('📥 Status da resposta:', response.status);
         
-        // Use a API do seu api.js
-        const result = await api.post('/services', formData);
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ Erro do servidor:', errorText);
+            throw new Error(`Erro ${response.status}: ${errorText}`);
+        }
+
+        const result = await response.json();
+        console.log('✅ Sucesso:', result);
         
         alert('✅ Serviço cadastrado com sucesso!');
         window.location.href = 'dashboard.html';
         
     } catch (error) {
-        console.error('Erro:', error);
-        alert(`❌ Erro: ${error.message}`);
+        console.error('❌ Erro completo:', error);
+        alert(`❌ Erro ao cadastrar serviço: ${error.message}`);
     } finally {
         submitBtn.textContent = originalText;
         submitBtn.disabled = false;
     }
 }
+
     </script>
 
     <script>

@@ -88,12 +88,41 @@ async function handleRegister(event) {
         console.log('📊 Dados da resposta:', data);
 
         if (response.ok) {
-            alert('✅ Cadastro realizado com sucesso! Faça login para continuar.');
-            window.location.href = 'login.html';
+    // Login automático após cadastro
+    console.log('✅ Cadastro realizado, fazendo login automático...');
+    
+    // Fazer login automaticamente com as credenciais
+    const loginResponse = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            email: formData.email,
+            senha: formData.senha
+        })
+    });
+
+    if (loginResponse.ok) {
+        const loginData = await loginResponse.json();
+        
+        // Salvar token e dados do usuário
+        localStorage.setItem('token', loginData.token);
+        localStorage.setItem('user', JSON.stringify(loginData.user));
+        
+        console.log('✅ Login automático realizado!');
+        
+        // Redirecionar baseado no tipo de usuário
+        if (loginData.user.tipo === 'prestador') {
+            window.location.href = 'dashboard.html';
         } else {
-            const errorMessage = data.error || data.message || 'Erro ao realizar cadastro';
-            throw new Error(errorMessage);
+            window.location.href = 'services.html';
         }
+    } else {
+        alert('✅ Cadastro realizado com sucesso! Faça login para continuar.');
+        window.location.href = 'login.html';
+    }
+}
 
     } catch (error) {
         console.error('❌ Erro no registro:', error);

@@ -2,6 +2,7 @@ const API_BASE_URL = 'https://comunidade-conectada-backend.onrender.com/api';
 window.API_BASE_URL = API_BASE_URL;
 
 console.log('✅ API_BASE_URL configurada:', API_BASE_URL);
+
 // Elementos globais
 let currentUser = null;
 
@@ -20,7 +21,6 @@ async function handleRegister(event) {
     const originalText = submitBtn.textContent;
     
     try {
-        // Mostrar estado de carregamento
         submitBtn.textContent = 'Carregando...';
         submitBtn.disabled = true;
 
@@ -42,12 +42,10 @@ async function handleRegister(event) {
             throw new Error('Por favor, preencha todos os campos obrigatórios.');
         }
 
-        // Validar email
         if (!isValidEmail(formData.email)) {
             throw new Error('Por favor, insira um email válido.');
         }
 
-        // Validar senha
         if (formData.senha.length < 6) {
             throw new Error('A senha deve ter pelo menos 6 caracteres');
         }
@@ -59,13 +57,11 @@ async function handleRegister(event) {
             throw new Error('A senha deve conter letras e números');
         }
 
-        // Verificar confirmação de senha
         const confirmarSenha = document.getElementById('confirmarSenha').value;
         if (formData.senha !== confirmarSenha) {
             throw new Error('As senhas não coincidem');
         }
 
-        // Verificar termos
         const termos = document.getElementById('termos');
         if (!termos || !termos.checked) {
             throw new Error('Você deve aceitar os termos de uso');
@@ -88,57 +84,53 @@ async function handleRegister(event) {
         console.log('📊 Dados da resposta:', data);
 
         if (response.ok) {
-    // Login automático após cadastro
-    console.log('✅ Cadastro realizado, fazendo login automático...');
-    
-    // Fazer login automaticamente com as credenciais
-    const loginResponse = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            email: formData.email,
-            senha: formData.senha
-        })
-    });
+            // Login automático após cadastro
+            console.log('✅ Cadastro realizado, fazendo login automático...');
+            
+            const loginResponse = await fetch(`${API_BASE_URL}/auth/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: formData.email,
+                    senha: formData.senha
+                })
+            });
 
-    if (loginResponse.ok) {
-        const loginData = await loginResponse.json();
-        
-        // Salvar token e dados do usuário
-        localStorage.setItem('token', loginData.token);
-        localStorage.setItem('user', JSON.stringify(loginData.user));
-        
-        console.log('✅ Login automático realizado!');
-        console.log('👤 Tipo de usuário no cadastro:', loginData.user.tipo);
-
-        // Redirecionar baseado no tipo de usuário
-        if (loginData.user.tipo === 'prestador') {
-            console.log('🎯 Redirecionando PRESTADOR para DASHBOARD (cadastro)');
-            window.location.href = 'dashboard.html';
+            if (loginResponse.ok) {
+                const loginData = await loginResponse.json();
+                
+                localStorage.setItem('token', loginData.token);
+                localStorage.setItem('user', JSON.stringify(loginData.user));
+                
+                console.log('✅ Login automático realizado!');
+                
+                // Redirecionar baseado no tipo de usuário
+                if (loginData.user.tipo === 'prestador') {
+                    window.location.href = 'dashboard.html';
+                } else {
+                    window.location.href = 'services.html';
+                }
+            } else {
+                alert('✅ Cadastro realizado com sucesso! Faça login para continuar.');
+                window.location.href = 'login.html';
+            }
         } else {
-             console.log('🎯 Redirecionando MORADOR para SERVICES (cadastro)');
-            window.location.href = 'services.html';
+            const errorMessage = data.error || data.message || 'Erro ao fazer cadastro';
+            throw new Error(errorMessage);
         }
-    } else {
-        alert('✅ Cadastro realizado com sucesso! Faça login para continuar.');
-        window.location.href = 'login.html';
-    }
-}
 
     } catch (error) {
         console.error('❌ Erro no registro:', error);
         alert(`❌ Erro: ${error.message}`);
         
-        // Restaurar botão
         submitBtn.textContent = originalText;
         submitBtn.disabled = false;
     }
 }
 
-// Função de login
-// Função de login - VERSÃO CORRIGIDA
+// Função de login - VERSÃO SIMPLES E FUNCIONAL
 async function handleLogin(event) {
     event.preventDefault();
     console.log('🔐 Iniciando processo de login...');
@@ -147,15 +139,12 @@ async function handleLogin(event) {
     const originalText = submitBtn.textContent;
     
     try {
-        // Mostrar estado de carregamento
         submitBtn.textContent = 'Entrando...';
         submitBtn.disabled = true;
 
-        // Coletar dados do formulário
         const email = document.getElementById('email').value.trim().toLowerCase();
         const senha = document.getElementById('senha').value;
 
-        // Validações básicas
         if (!email || !senha) {
             throw new Error('Por favor, preencha todos os campos.');
         }
@@ -166,7 +155,6 @@ async function handleLogin(event) {
 
         console.log('📤 Enviando credenciais para login...');
 
-        // Fazer requisição para a API
         const response = await fetch(`${API_BASE_URL}/auth/login`, {
             method: 'POST',
             headers: {
@@ -184,21 +172,16 @@ async function handleLogin(event) {
         console.log('📊 Dados da resposta:', data);
 
         if (response.ok) {
-            // Salvar token e dados do usuário
             localStorage.setItem('token', data.token);
             localStorage.setItem('user', JSON.stringify(data.user));
             
             console.log('✅ Login realizado com sucesso!');
-            console.log('👤 Tipo de usuário:', data.user.tipo);
-            
             alert('✅ Login realizado com sucesso!');
             
-            // ✅ CORREÇÃO CRÍTICA: Redirecionar CORRETAMENTE baseado no tipo de usuário
+            // Redirecionar baseado no tipo de usuário
             if (data.user.tipo === 'prestador') {
-                console.log('🎯 Redirecionando PRESTADOR para DASHBOARD');
                 window.location.href = 'dashboard.html';
             } else {
-                console.log('🎯 Redirecionando MORADOR para SERVICES');
                 window.location.href = 'services.html';
             }
         } else {
@@ -210,7 +193,6 @@ async function handleLogin(event) {
         console.error('❌ Erro no login:', error);
         alert(`❌ Erro: ${error.message}`);
         
-        // Restaurar botão
         submitBtn.textContent = originalText;
         submitBtn.disabled = false;
     }
@@ -236,7 +218,6 @@ async function buscarCEP() {
             throw new Error('CEP não encontrado');
         }
         
-        // Preencher os campos com os dados do CEP
         document.getElementById('endereco').value = data.logradouro || '';
         document.getElementById('cidade').value = data.localidade || '';
         document.getElementById('estado').value = data.uf || '';
@@ -256,7 +237,6 @@ function isValidEmail(email) {
 }
 
 // Verificar estado de autenticação
-// VERSAÃO CORRIGIDA - função checkAuthState única e completa
 function checkAuthState() {
     const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
@@ -266,14 +246,14 @@ function checkAuthState() {
             currentUser = JSON.parse(userData);
             console.log('👤 Usuário autenticado:', currentUser);
             updateUIForAuthState(true);
-            updateNavigation(); // ← AGORA ESTÁ SENDO CHAMADA!
+            updateNavigation();
         } catch (error) {
             console.error('❌ Erro ao parsear dados do usuário:', error);
             clearAuthData();
         }
     } else {
         updateUIForAuthState(false);
-        updateNavigation(); // ← AGORA ESTÁ SENDO CHAMADA AQUI TAMBÉM!
+        updateNavigation();
     }
 }
 
@@ -282,7 +262,7 @@ function updateUIForAuthState(isAuthenticated) {
     // Implementação conforme necessário
 }
 
-// ===== FUNÇÕES NOVAS ADICIONADAS =====
+// ===== FUNÇÕES DE AUTENTICAÇÃO =====
 
 // Verificar se usuário está logado
 function isLoggedIn() {
@@ -294,10 +274,8 @@ function isLoggedIn() {
     }
     
     try {
-        // Verificar se o token não expirou
         const payload = JSON.parse(atob(token.split('.')[1]));
         const isExpired = payload.exp * 1000 < Date.now();
-        
         return !isExpired;
     } catch (error) {
         console.error('Erro ao verificar token:', error);
@@ -331,31 +309,11 @@ function requirePrestador() {
 
 // Logout
 function handleLogout() {
-    console.log('👋 Realizando logout silencioso...');
-    
+    console.log('👋 Realizando logout...');
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     currentUser = null;
-    
     window.location.href = 'index.html';
-}
-
-// Verificar e redirecionar se já estiver logado
-function redirectIfLoggedIn() {
-    if (isLoggedIn()) {
-        window.location.href = 'services.html';
-        return true;
-    }
-    return false;
-}
-
-// Verificar e redirecionar se NÃO estiver logado
-function redirectIfNotLoggedIn() {
-    if (!isLoggedIn()) {
-        window.location.href = 'login.html';
-        return true;
-    }
-    return false;
 }
 
 // Limpar dados de autenticação
@@ -367,28 +325,22 @@ function clearAuthData() {
 
 // Função para adicionar botão de logout dinamicamente
 function addLogoutButton() {
-    // Verificar se já existe um botão de logout
     if (document.querySelector('.logout-btn')) return;
     
-    // Procurar o menu de navegação
     const navMenu = document.querySelector('.nav-menu');
     if (!navMenu) return;
     
-    // Verificar se já está logado
     if (!isLoggedIn()) return;
     
-    // Criar botão de logout
     const logoutLi = document.createElement('li');
     logoutLi.innerHTML = '<a href="#" class="logout-btn">🚪 Sair</a>';
     
-    // Adicionar evento de clique
     const logoutBtn = logoutLi.querySelector('.logout-btn');
     logoutBtn.addEventListener('click', function(e) {
         e.preventDefault();
         handleLogout();
     });
     
-    // Adicionar ao menu (no final)
     navMenu.appendChild(logoutLi);
 }
 
@@ -400,44 +352,28 @@ function updateNavigation() {
     const isLogged = isLoggedIn();
     
     if (isLogged) {
-        // Remover links de login e cadastro se existirem
         const loginLink = navMenu.querySelector('a[href="login.html"]');
         const cadastroLink = navMenu.querySelector('a[href="cadastro.html"]');
         
         if (loginLink) loginLink.parentElement.remove();
         if (cadastroLink) cadastroLink.parentElement.remove();
         
-        // Adicionar link para dashboard se não existir
         if (!navMenu.querySelector('a[href="dashboard.html"]')) {
             const dashboardLi = document.createElement('li');
             dashboardLi.innerHTML = '<a href="dashboard.html">Meu Painel</a>';
             navMenu.appendChild(dashboardLi);
         }
         
-        // Adicionar botão de logout
         addLogoutButton();
     }
 }
 
-// Atualizar a função checkAuthState para incluir a navegação
-function checkAuthState() {
-    const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('user');
-    
-    if (token && userData) {
-        try {
-            currentUser = JSON.parse(userData);
-            console.log('👤 Usuário autenticado:', currentUser);
-            updateUIForAuthState(true);
-            updateNavigation(); // ← ADICIONAR ESTA LINHA
-        } catch (error) {
-            console.error('❌ Erro ao parsear dados do usuário:', error);
-            clearAuthData();
-        }
-    } else {
-        updateUIForAuthState(false);
-        updateNavigation(); // ← ADICIONAR ESTA LINHA TAMBÉM
-    }
-}
+// Definir objeto auth globalmente
+window.auth = {
+    isLoggedIn: isLoggedIn,
+    getCurrentUser: getCurrentUser,
+    handleLogout: handleLogout,
+    requirePrestador: requirePrestador
+};
 
 console.log('✅ auth.js carregado com sucesso!');

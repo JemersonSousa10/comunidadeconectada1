@@ -10,14 +10,10 @@ const auth = (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
-    // ✅ CORREÇÃO CRÍTICA: Estrutura correta do req.user
-    req.user = {
-      id: decoded.id,      // ✅ AGORA VEM DO TOKEN CORRETO
-      email: decoded.email,
-      tipo: decoded.tipo
-    };
+    // ✅ VOLTAR para a estrutura ORIGINAL
+    req.userId = decoded.userId; // ← COMO ESTAVA FUNCIONANDO
     
-    console.log('🔐 Usuário autenticado no middleware:', req.user);
+    console.log('🔐 Usuário autenticado no middleware, ID:', req.userId);
     next();
   } catch (error) {
     console.error('❌ Erro na autenticação:', error);

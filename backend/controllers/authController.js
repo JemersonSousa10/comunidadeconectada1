@@ -2,17 +2,9 @@ const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
-// ✅ CORREÇÃO: Gerar token com estrutura correta
-const generateToken = (user) => {
-  return jwt.sign(
-    { 
-      id: user.id,  // ✅ MUDANÇA CRÍTICA: usar 'id' em vez de 'userId'
-      email: user.email,
-      tipo: user.tipo 
-    }, 
-    process.env.JWT_SECRET || 'fallback-secret', 
-    { expiresIn: '7d' }
-  );
+// ✅ VOLTAR para a versão SIMPLES do token
+const generateToken = (userId) => {
+  return jwt.sign({ userId }, process.env.JWT_SECRET || 'fallback-secret', { expiresIn: '7d' });
 };
 
 exports.register = async (req, res) => {
@@ -21,14 +13,12 @@ exports.register = async (req, res) => {
 
     const { nome, email, senha, tipo, telefone, endereco, cep } = req.body;
 
-    // Validações básicas
     if (!nome || !email || !senha || !tipo) {
       return res.status(400).json({ error: 'Todos os campos obrigatórios devem ser preenchidos' });
     }
 
     console.log('🔍 Verificando se usuário já existe...');
 
-    // Verificar se o usuário já existe
     const existingUser = await User.findByEmail(email);
     if (existingUser) {
       return res.status(400).json({ error: 'E-mail já cadastrado' });
@@ -36,7 +26,6 @@ exports.register = async (req, res) => {
 
     console.log('✅ Usuário não existe, criando...');
 
-    // Hash da senha
     console.log('🔐 Gerando hash da senha...');
     const hashedPassword = await bcrypt.hash(senha, 10);
     console.log('✅ Hash da senha gerado');
@@ -57,8 +46,8 @@ exports.register = async (req, res) => {
 
     console.log('🎉 Usuário criado com sucesso, ID:', user.id);
 
-    // ✅ CORREÇÃO: Usar a função generateToken corrigida
-    const token = generateToken(user);
+    // ✅ VOLTAR para token simples
+    const token = generateToken(user.id);
 
     res.status(201).json({
       message: 'Usuário criado com sucesso',
@@ -76,7 +65,6 @@ exports.register = async (req, res) => {
 
   } catch (error) {
     console.error('❌ Erro detalhado no registro:', error);
-    console.error('❌ Stack trace:', error.stack);
     res.status(500).json({ error: 'Erro interno do servidor' });
   }
 };
@@ -108,8 +96,8 @@ exports.login = async (req, res) => {
       return res.status(401).json({ error: 'Credenciais inválidas' });
     }
 
-    // ✅ CORREÇÃO: Usar a função generateToken corrigida
-    const token = generateToken(user);
+    // ✅ VOLTAR para token simples
+    const token = generateToken(user.id);
 
     console.log('✅ Login realizado com sucesso para:', user.email);
 
@@ -134,8 +122,8 @@ exports.login = async (req, res) => {
 
 exports.getProfile = async (req, res) => {
   try {
-    // ✅ CORREÇÃO: Usar req.user.id (estrutura correta)
-    const user = await User.findById(req.user.id);
+    // ✅ VOLTAR para req.userId
+    const user = await User.findById(req.userId);
     if (!user) {
       return res.status(404).json({ error: 'Usuário não encontrado' });
     }

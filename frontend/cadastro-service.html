@@ -8,6 +8,15 @@
     <link rel="stylesheet" href="css/accessibility.css">
 </head>
 <body>
+
+    <script>
+    // Garantir que a URL da API esteja definida
+    if (!window.API_BASE_URL) {
+        window.API_BASE_URL = 'https://comunidade-conectada-backend.onrender.com/api';
+    }
+    console.log('🌐 API URL:', window.API_BASE_URL);
+</script>
+
     <header role="banner">
         <nav class="navbar" role="navigation" aria-label="Navegação principal">
             <div class="nav-container">
@@ -160,7 +169,7 @@
             document.getElementById('servicoForm').addEventListener('submit', handleServiceCreate);
         });
 
-     async function handleServiceCreate(e) {
+async function handleServiceCreate(e) {
     e.preventDefault();
     console.log('🎯 Iniciando cadastro de serviço...');
     
@@ -194,7 +203,7 @@
         console.log('👤 Usuário:', JSON.parse(localStorage.getItem('user')));
         console.log('🌐 API_BASE:', window.API_BASE_URL);
 
-        // Fazer requisição DIRETA para debug
+        // ✅ CORREÇÃO: Usar a URL correta da API
         const response = await fetch(`${window.API_BASE_URL}/services`, {
             method: 'POST',
             headers: {

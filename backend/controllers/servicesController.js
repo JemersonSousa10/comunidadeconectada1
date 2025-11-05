@@ -8,18 +8,32 @@ exports.createService = async (req, res) => {
       return res.status(400).json({ errors: errors.array() });
     }
 
+    console.log('📥 Dados recebidos:', req.body);
+    console.log('👤 Usuário autenticado:', req.user);
+
+    // ✅ CORREÇÃO: Usar usuario_id e mapear campos corretamente
     const serviceData = {
-      id_prestador: req.userId,
-      ...req.body
+      usuario_id: req.user.id,
+      nome: req.body.nome_servico, // Mapear nome_servico → nome
+      categoria: req.body.categoria,
+      descricao: req.body.descricao,
+      preco: req.body.valor, // Mapear valor → preco
+      contato: req.body.contato,
+      localizacao: req.body.localizacao
     };
 
+    console.log('📦 Dados do serviço processados:', serviceData);
+
     const service = await Service.create(serviceData);
+    
+    console.log('✅ Serviço criado no banco:', service);
+    
     res.status(201).json({
       message: 'Serviço criado com sucesso',
       service
     });
   } catch (error) {
-    console.error('Erro ao criar serviço:', error);
+    console.error('❌ Erro ao criar serviço:', error);
     res.status(500).json({ error: 'Erro interno do servidor' });
   }
 };
@@ -62,7 +76,7 @@ exports.searchServices = async (req, res) => {
 
 exports.getMyServices = async (req, res) => {
   try {
-    const services = await Service.getByPrestador(req.userId);
+    const services = await Service.getByPrestador(req.user.id);
     res.json({ services });
   } catch (error) {
     console.error('Erro ao buscar meus serviços:', error);
@@ -73,7 +87,7 @@ exports.getMyServices = async (req, res) => {
 exports.deleteService = async (req, res) => {
   try {
     const { id } = req.params;
-    const deleted = await Service.delete(id, req.userId);
+    const deleted = await Service.delete(id, req.user.id);
 
     if (!deleted) {
       return res.status(404).json({ error: 'Serviço não encontrado ou não autorizado' });

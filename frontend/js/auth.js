@@ -2,6 +2,13 @@ const API_BASE_URL = 'https://comunidade-conectada-backend.onrender.com/api';
 window.API_BASE_URL = API_BASE_URL;
 
 console.log('✅ API_BASE_URL configurada:', API_BASE_URL);
+// ✅ ADICIONAR: Definir auth object globalmente
+window.auth = {
+    isLoggedIn: isLoggedIn,
+    getCurrentUser: getCurrentUser,
+    handleLogout: handleLogout,
+    requirePrestador: requirePrestador
+};
 // Elementos globais
 let currentUser = null;
 

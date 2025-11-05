@@ -135,6 +135,8 @@
                 return;
             }
 
+            console.log('👤 Carregando dashboard para:', user);
+
             // Atualizar mensagem de boas-vindas
             document.getElementById('userWelcome').innerHTML = `
                 <h2>Olá, ${user.nome}!</h2>
@@ -147,6 +149,7 @@
                 await loadPrestadorData();
             } else {
                 document.getElementById('moradorSection').style.display = 'block';
+                await loadMoradorData();
             }
 
             // Carregar informações do perfil
@@ -158,85 +161,99 @@
         }
     }
 
-    // SUBSTITUIR APENAS ESTA FUNÇÃO no dashboard.html existente
-async function loadPrestadorData() {
-    try {
-        // Use a API do seu api.js
-        const myServices = await api.get('/services/my-services');
-        
-        // Atualizar estatísticas
-        document.getElementById('totalServices').textContent = myServices.length;
-        document.getElementById('totalViews').textContent = myServices.reduce((sum, service) => sum + (service.visualizacoes || 0), 0);
-        
-        // Atualizar lista de serviços
-        const servicesList = document.getElementById('myServicesList');
-        if (myServices.length === 0) {
-            servicesList.innerHTML = '<p>Nenhum serviço cadastrado ainda.</p>';
-        } else {
-            servicesList.innerHTML = myServices.map(service => `
-                <div class="service-mini-item">
-                    <h4>${service.nome_servico}</h4>
-                    <p>R$ ${service.valor} - ${service.categoria}</p>
-                    <small>${service.descricao.substring(0, 50)}...</small>
-                    <div class="service-mini-actions">
-                        <button class="btn-small" onclick="editarServico(${service.id})">Editar</button>
-                        <button class="btn-small btn-danger" onclick="excluirServico(${service.id})">Excluir</button>
-                    </div>
-                </div>
-            `).join('');
-        }
-        
-    } catch (error) {
-        console.error('Erro ao carregar serviços do prestador:', error);
-        document.getElementById('myServicesList').innerHTML = '<p>Erro ao carregar serviços.</p>';
-    }
-}
+    // ✅ CORREÇÃO: Função para carregar dados do prestador
+    async function loadPrestadorData() {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${window.API_BASE_URL}/services/my-services`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
 
-// Função de exclusão atualizada para usar sua API
-async function excluirServico(servicoId) {
-    if (!confirm('Tem certeza que deseja excluir este serviço?')) return;
-    
-    try {
-        await api.delete(`/services/${servicoId}`);
-        alert('✅ Serviço excluído com sucesso!');
-        loadPrestadorData(); // Recarregar a lista
-        
-    } catch (error) {
-        console.error('Erro:', error);
-        alert('❌ Erro ao excluir serviço');
-    }
-}
-
-
-// Adicionar estas funções auxiliares no dashboard.html
-async function excluirServico(servicoId) {
-    if (!confirm('Tem certeza que deseja excluir este serviço?')) return;
-    
-    try {
-        const token = localStorage.getItem('token');
-        const response = await fetch(`${API_BASE}/services/${servicoId}`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${token}`
+            if (!response.ok) {
+                throw new Error('Erro ao carregar serviços');
             }
-        });
-        
-        if (!response.ok) throw new Error('Erro ao excluir serviço');
-        
-        alert('✅ Serviço excluído com sucesso!');
-        loadPrestadorData(); // Recarregar a lista
-        
-    } catch (error) {
-        console.error('Erro:', error);
-        alert('❌ Erro ao excluir serviço');
-    }
-}
 
-function editarServico(servicoId) {
-    alert(`Editar serviço ${servicoId} - Funcionalidade em desenvolvimento`);
-    // Futuramente redirecionar para página de edição
-    // window.location.href = `editar-servico.html?id=${servicoId}`;
-}
+            const data = await response.json();
+            const myServices = data.services || [];
+            
+            console.log('📊 Meus serviços:', myServices);
+
+            // Atualizar estatísticas
+            document.getElementById('totalServices').textContent = myServices.length;
+            document.getElementById('totalViews').textContent = myServices.reduce((sum, service) => sum + (service.visualizacoes || 0), 0);
+            
+            // Atualizar lista de serviços
+            const servicesList = document.getElementById('myServicesList');
+            if (myServices.length === 0) {
+                servicesList.innerHTML = '<p>Nenhum serviço cadastrado ainda.</p>';
+            } else {
+                // ✅ CORREÇÃO: Usar campos corretos do serviço
+                servicesList.innerHTML = myServices.map(service => `
+                    <div class="service-mini-item">
+                        <h4>${service.nome || service.nome_servico}</h4>
+                        <p>R$ ${service.preco || service.valor} - ${service.categoria}</p>
+                        <small>${service.descricao ? service.descricao.substring(0, 50) + '...' : 'Sem descrição'}</small>
+                        <div class="service-mini-actions">
+                            <button class="btn-small" onclick="editarServico(${service.id})">Editar</button>
+                            <button class="btn-small btn-danger" onclick="excluirServico(${service.id})">Excluir</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+        } catch (error) {
+            console.error('Erro ao carregar serviços do prestador:', error);
+            document.getElementById('myServicesList').innerHTML = '<p>Erro ao carregar serviços.</p>';
+        }
+    }
+
+    // ✅ NOVA FUNÇÃO: Carregar dados do morador
+    async function loadMoradorData() {
+        try {
+            // Carregar favoritos do localStorage
+            const favoritos = JSON.parse(localStorage.getItem('favoritos') || '[]');
+            const favoritesList = document.getElementById('favoritesList');
+            
+            if (favoritos.length === 0) {
+                favoritesList.innerHTML = '<p>Nenhum serviço favoritado ainda.</p>';
+            } else {
+                favoritesList.innerHTML = '<p>Funcionalidade de favoritos em desenvolvimento.</p>';
+            }
+        } catch (error) {
+            console.error('Erro ao carregar dados do morador:', error);
+        }
+    }
+
+    // ✅ CORREÇÃO: Função de exclusão
+    async function excluirServico(servicoId) {
+        if (!confirm('Tem certeza que deseja excluir este serviço?')) return;
+        
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${window.API_BASE_URL}/services/${servicoId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (!response.ok) throw new Error('Erro ao excluir serviço');
+            
+            alert('✅ Serviço excluído com sucesso!');
+            loadPrestadorData(); // Recarregar a lista
+            
+        } catch (error) {
+            console.error('Erro:', error);
+            alert('❌ Erro ao excluir serviço');
+        }
+    }
+
+    function editarServico(servicoId) {
+        alert(`Editar serviço ${servicoId} - Funcionalidade em desenvolvimento`);
+    }
 
     async function loadProfileInfo() {
         try {
@@ -246,6 +263,7 @@ function editarServico(servicoId) {
                 <p><strong>E-mail:</strong> ${user.email}</p>
                 <p><strong>Tipo:</strong> ${user.tipo === 'prestador' ? 'Prestador de Serviços' : 'Morador'}</p>
                 ${user.endereco ? `<p><strong>Endereço:</strong> ${user.endereco}</p>` : ''}
+                ${user.cep ? `<p><strong>CEP:</strong> ${user.cep}</p>` : ''}
             `;
         } catch (error) {
             console.error('Erro ao carregar perfil:', error);
@@ -254,6 +272,11 @@ function editarServico(servicoId) {
 
     function editarPerfil() {
         alert('Funcionalidade em desenvolvimento');
+    }
+
+    // ✅ CORREÇÃO: Garantir que API_BASE_URL está definida
+    if (!window.API_BASE_URL) {
+        window.API_BASE_URL = 'https://comunidade-conectada-backend.onrender.com/api';
     }
 
     // Carregar dashboard quando a página carregar

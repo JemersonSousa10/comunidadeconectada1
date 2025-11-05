@@ -2,75 +2,93 @@ const API_BASE = window.API_BASE_URL || 'https://comunidade-conectada-backend.on
 console.log('🔗 API_BASE:', API_BASE);
 
 const services = {
-    async loadServices() {
+  async loadServices() {
     try {
         console.log('🔍 Iniciando carregamento de serviços...');
         this.showLoading(true);
         
-        // Debug: verificar configurações
-        console.log('🌐 API_BASE:', API_BASE);
-        console.log('🔐 Token:', localStorage.getItem('token'));
-        console.log('👤 User:', localStorage.getItem('user'));
-        
-        // Obter valores dos filtros
-        const search = document.getElementById('searchInput').value;
-        const category = document.getElementById('categoryFilter').value;
-        const sort = document.getElementById('sortFilter').value;
-        
-        // Construir URL com parâmetros de busca e filtros
-        let url = `${API_BASE}/services`;
-        const params = new URLSearchParams();
-        
-        if (search) params.append('q', search);
-        if (category) params.append('categoria', category);
-        if (sort) params.append('ordenar', sort);
-        
-        if (params.toString()) {
-            url += `?${params.toString()}`;
-        }
-        
-        console.log('🌐 URL completa:', url);
-        
-        // Fazer requisição DIRETA para debug
         const token = localStorage.getItem('token');
-        const response = await fetch(url, {
+        console.log('🔐 Token:', token ? '✅ Presente' : '❌ Ausente');
+        
+        // Fazer requisição para o backend
+        const response = await fetch(`${API_BASE}/services`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             }
         });
         
-        console.log('📡 Status da resposta:', response.status);
-        console.log('🔗 Headers:', response.headers);
+        console.log('📡 Status do backend:', response.status);
         
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('❌ Erro da API:', errorText);
+            console.error('❌ Backend retornou erro:', errorText);
             throw new Error(`Erro ${response.status}: ${errorText}`);
         }
         
-        const servicos = await response.json();
-        console.log('✅ Serviços carregados:', servicos);
+        const data = await response.json();
+        console.log('📦 Resposta completa:', data);
         
-        this.displayServices(servicos);
+        // ✅ CORREÇÃO: Extrair o array de serviços da propriedade 'services'
+        const servicos = data.services || data;
+        console.log('✅ Serviços extraídos:', servicos);
+        
+        if (servicos && Array.isArray(servicos)) {
+            this.displayServices(servicos);
+        } else {
+            console.error('❌ Formato inesperado:', servicos);
+            throw new Error('Formato de resposta inesperado do servidor');
+        }
         
     } catch (error) {
         console.error('❌ Erro ao carregar serviços:', error);
-        alert('Erro ao carregar serviços. Verifique o console para detalhes.');
         
-        // Fallback: mostrar mensagem amigável
-        document.getElementById('servicesGrid').innerHTML = `
-            <div class="error-message">
-                <h3>😕 Não foi possível carregar os serviços</h3>
-                <p>Erro: ${error.message}</p>
-                <button onclick="services.loadServices()" class="btn btn-primary">
-                    🔄 Tentar novamente
-                </button>
-            </div>
-        `;
+        // Fallback em caso de erro
+        this.useFallbackWithMessage(error.message);
     } finally {
         this.showLoading(false);
     }
+},
+
+useFallbackWithMessage(errorMsg) {
+    console.log('🔄 Usando fallback por causa do erro:', errorMsg);
+    
+    // Serviços de exemplo
+    const servicosExemplo = [
+        {
+            id: 1,
+            nome_servico: "Encanador Residencial",
+            descricao: "Serviços de encanamento para residências, consertos e instalações",
+            categoria: "reparos",
+            valor: 80.00,
+            contato: "(11) 99999-9999",
+            localizacao: "Centro",
+            prestador_nome: "João Silva"
+        },
+        {
+            id: 2,
+            nome_servico: "Aulas de Matemática",
+            descricao: "Aulas particulares para ensino fundamental e médio",
+            categoria: "aulas",
+            valor: 50.00,
+            contato: "professora@email.com",
+            localizacao: "Zona Norte",
+            prestador_nome: "Maria Santos"
+        }
+    ];
+    
+    this.displayServices(servicosExemplo);
+    
+    // Mensagem informativa
+    const grid = document.getElementById('servicesGrid');
+    const existingHTML = grid.innerHTML;
+    grid.innerHTML = existingHTML + `
+        <div class="info-message" style="grid-column: 1 / -1; background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 8px; margin-top: 20px;">
+            <h4>⚠️ Erro de Formatação</h4>
+            <p>Backend funcionando mas formato inesperado: ${errorMsg}</p>
+            <p><small>Mostrando serviços de exemplo. O problema está no processamento da resposta.</small></p>
+        </div>
+    `;
 },
     
     displayServices(servicos) {

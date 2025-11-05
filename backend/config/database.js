@@ -26,22 +26,27 @@ console.log('🔧 Configuração do Banco AIVEN:', {
   user: process.env.DB_USER
 });
 
-// ✅ Crie a conexão com a versão de promises
-const connection = mysql.createConnection(connectionConfig);
+// ✅ CORREÇÃO: Crie um POOL em vez de uma conexão única
+const pool = mysql.createPool(connectionConfig);
 
 // Teste de conexão
-connection.then((conn) => {
-  console.log('🎉 CONECTADO AO MYSQL NO AIVEN! (usando promises)');
-  console.log('📊 Banco:', process.env.DB_NAME);
-  console.log('🔗 Host:', process.env.DB_HOST);
-  
-  // Teste adicional: verificar se consegue executar uma query
-  return conn.execute('SELECT 1 as connection_test');
-}).then(([rows]) => {
-  console.log('✅ Teste de query executado com sucesso:', rows[0].connection_test);
-}).catch((err) => {
-  console.error('❌ Erro ao conectar com o MySQL Aiven:', err.message);
-  console.error('💡 Verifique suas variáveis de ambiente no Render');
-});
+pool.getConnection()
+  .then((connection) => {
+    console.log('🎉 CONECTADO AO MYSQL NO AIVEN! (usando pool)');
+    console.log('📊 Banco:', process.env.DB_NAME);
+    console.log('🔗 Host:', process.env.DB_HOST);
+    
+    // Teste adicional
+    return connection.execute('SELECT 1 as connection_test')
+      .then(([rows]) => {
+        console.log('✅ Teste de query executado com sucesso:', rows[0].connection_test);
+        connection.release(); // Liberar conexão de volta para o pool
+      });
+  })
+  .catch((err) => {
+    console.error('❌ Erro ao conectar com o MySQL Aiven:', err.message);
+    console.error('💡 Verifique suas variáveis de ambiente no Render');
+  });
 
-module.exports = connection;
+// ✅ CORREÇÃO: Exporte o POOL (que tem método execute)
+module.exports = pool;

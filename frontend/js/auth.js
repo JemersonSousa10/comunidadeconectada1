@@ -2,13 +2,6 @@ const API_BASE_URL = 'https://comunidade-conectada-backend.onrender.com/api';
 window.API_BASE_URL = API_BASE_URL;
 
 console.log('✅ API_BASE_URL configurada:', API_BASE_URL);
-// ✅ ADICIONAR: Definir auth object globalmente
-window.auth = {
-    isLoggedIn: isLoggedIn,
-    getCurrentUser: getCurrentUser,
-    handleLogout: handleLogout,
-    requirePrestador: requirePrestador
-};
 // Elementos globais
 let currentUser = null;
 
@@ -118,11 +111,14 @@ async function handleRegister(event) {
         localStorage.setItem('user', JSON.stringify(loginData.user));
         
         console.log('✅ Login automático realizado!');
-        
+        console.log('👤 Tipo de usuário no cadastro:', loginData.user.tipo);
+
         // Redirecionar baseado no tipo de usuário
         if (loginData.user.tipo === 'prestador') {
+            console.log('🎯 Redirecionando PRESTADOR para DASHBOARD (cadastro)');
             window.location.href = 'dashboard.html';
         } else {
+             console.log('🎯 Redirecionando MORADOR para SERVICES (cadastro)');
             window.location.href = 'services.html';
         }
     } else {
@@ -142,6 +138,7 @@ async function handleRegister(event) {
 }
 
 // Função de login
+// Função de login - VERSÃO CORRIGIDA
 async function handleLogin(event) {
     event.preventDefault();
     console.log('🔐 Iniciando processo de login...');
@@ -192,12 +189,16 @@ async function handleLogin(event) {
             localStorage.setItem('user', JSON.stringify(data.user));
             
             console.log('✅ Login realizado com sucesso!');
+            console.log('👤 Tipo de usuário:', data.user.tipo);
+            
             alert('✅ Login realizado com sucesso!');
             
-            // Redirecionar baseado no tipo de usuário
+            // ✅ CORREÇÃO CRÍTICA: Redirecionar CORRETAMENTE baseado no tipo de usuário
             if (data.user.tipo === 'prestador') {
+                console.log('🎯 Redirecionando PRESTADOR para DASHBOARD');
                 window.location.href = 'dashboard.html';
             } else {
+                console.log('🎯 Redirecionando MORADOR para SERVICES');
                 window.location.href = 'services.html';
             }
         } else {

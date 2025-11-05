@@ -6,7 +6,7 @@ const api = {
         };
 
         if (includeAuth) {
-            const token = localStorage.getItem('authToken');
+            const token = localStorage.getItem('token');
             if (token) {
                 headers['Authorization'] = `Bearer ${token}`;
             }
@@ -18,7 +18,7 @@ const api = {
     // Handler genérico de requests
     request: async (endpoint, options = {}) => {
         // Usa a API_BASE_URL global definida no auth.js
-        const url = endpoint.startsWith('http') ? endpoint : `${window.API_BASE_URL || API_BASE_URL}${endpoint}`;
+        const url = endpoint.startsWith('http') ? endpoint : `${window.API_BASE_URL}${endpoint}`;
         
         const config = {
             headers: api.getHeaders(!options.public),

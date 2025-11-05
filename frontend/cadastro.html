@@ -383,6 +383,36 @@
                 }
             }
         }
+
+// Correção emergencial para o CEP
+document.addEventListener('DOMContentLoaded', function() {
+    // Forçar recarregamento dos eventos do CEP
+    setTimeout(function() {
+        const buscarCepBtn = document.getElementById('buscarCep');
+        if (buscarCepBtn) {
+            // Remover event listeners antigos
+            buscarCepBtn.replaceWith(buscarCepBtn.cloneNode(true));
+            
+            // Adicionar novo event listener
+            document.getElementById('buscarCep').addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('🔄 Botão CEP clicado (corrigido)');
+                buscarCEP();
+            });
+        }
+        
+        // Também adicionar evento no blur do CEP
+        const cepInput = document.getElementById('cep');
+        if (cepInput) {
+            cepInput.addEventListener('blur', function() {
+                if (this.value.length === 9) { // 00000-000
+                    console.log('🔄 CEP preenchido, buscando automaticamente');
+                    buscarCEP();
+                }
+            });
+        }
+    }, 500);
+});
     </script>
 </body>
 </html>

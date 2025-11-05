@@ -1,5 +1,7 @@
-const API_BASE_URL = 'https://comunidade-conectada-backend.onrender.com';
+const API_BASE_URL = 'https://comunidade-conectada-backend.onrender.com/api';
+window.API_BASE_URL = API_BASE_URL;
 
+console.log('✅ API_BASE_URL configurada:', API_BASE_URL);
 // Elementos globais
 let currentUser = null;
 
@@ -72,7 +74,7 @@ async function handleRegister(event) {
         console.log('✅ Todas validações passadas, enviando para API...');
 
         // Fazer requisição para a API
-        const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+        const response = await fetch(`${API_BASE_URL}/auth/register`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -132,7 +134,7 @@ async function handleLogin(event) {
         console.log('📤 Enviando credenciais para login...');
 
         // Fazer requisição para a API
-        const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+        const response = await fetch(`${API_BASE_URL}/auth/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

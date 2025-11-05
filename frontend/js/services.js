@@ -1,4 +1,5 @@
-const API_BASE = window.API_BASE_URL || 'https://comunidade-conectada-backend.onrender.com/';
+const API_BASE = window.API_BASE_URL || 'https://comunidade-conectada-backend.onrender.com/api';
+console.log('🔗 API_BASE:', API_BASE);
 
 const services = {
     async loadServices() {

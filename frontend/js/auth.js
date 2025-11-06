@@ -112,11 +112,14 @@ async function handleRegister(event) {
                 localStorage.setItem('user', JSON.stringify(loginData.user));
                 
                 console.log('✅ Login automático realizado!');
-                
+                console.log('👤 Tipo de usuário no cadastro:', loginData.user.tipo);
+
                 // Redirecionar baseado no tipo de usuário
                 if (loginData.user.tipo === 'prestador') {
+                    console.log('🎯 Redirecionando PRESTADOR para DASHBOARD (cadastro)');
                     window.location.href = 'dashboard.html';
                 } else {
+                     console.log('🎯 Redirecionando MORADOR para SERVICES (cadastro)');
                     window.location.href = 'services.html';
                 }
             } else {
@@ -146,12 +149,15 @@ async function handleLogin(event) {
     const originalText = submitBtn.textContent;
     
     try {
+        // Mostrar estado de carregamento
         submitBtn.textContent = 'Entrando...';
         submitBtn.disabled = true;
 
+        // Coletar dados do formulário
         const email = document.getElementById('email').value.trim().toLowerCase();
         const senha = document.getElementById('senha').value;
 
+        // Validações básicas
         if (!email || !senha) {
             throw new Error('Por favor, preencha todos os campos.');
         }
@@ -162,6 +168,7 @@ async function handleLogin(event) {
 
         console.log('📤 Enviando credenciais para login...');
 
+        // Fazer requisição para a API
         const response = await fetch(`${API_BASE_URL}/auth/login`, {
             method: 'POST',
             headers: {
@@ -179,16 +186,21 @@ async function handleLogin(event) {
         console.log('📊 Dados da resposta:', data);
 
         if (response.ok) {
+            // Salvar token e dados do usuário
             localStorage.setItem('token', data.token);
             localStorage.setItem('user', JSON.stringify(data.user));
             
             console.log('✅ Login realizado com sucesso!');
+            console.log('👤 Tipo de usuário:', data.user.tipo);
+            
             alert('✅ Login realizado com sucesso!');
             
-            // Redirecionar baseado no tipo de usuário
+            // ✅ CORREÇÃO CRÍTICA: Redirecionar CORRETAMENTE baseado no tipo de usuário
             if (data.user.tipo === 'prestador') {
+                console.log('🎯 Redirecionando PRESTADOR para DASHBOARD');
                 window.location.href = 'dashboard.html';
             } else {
+                console.log('🎯 Redirecionando MORADOR para SERVICES');
                 window.location.href = 'services.html';
             }
         } else {
@@ -200,6 +212,7 @@ async function handleLogin(event) {
         console.error('❌ Erro no login:', error);
         alert(`❌ Erro: ${error.message}`);
         
+        // Restaurar botão
         submitBtn.textContent = originalText;
         submitBtn.disabled = false;
     }

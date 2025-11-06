@@ -5,12 +5,26 @@ exports.createService = async (req, res) => {
   try {
     console.log('=== 🎯 CREATE SERVICE - INICIANDO ===');
     console.log('📦 Body recebido:', req.body);
-    console.log('👤 UserId do token:', req.userId);
+    console.log('👤 User do token:', req.user);
+    console.log('👤 UserId:', req.user?.id);
 
-    // ✅ CORREÇÃO: Validação mais rigorosa dos campos
+    // ✅ CORREÇÃO: Usar req.user.id em vez de req.userId
+    if (!req.user || !req.user.id) {
+      console.error('❌ ERRO CRÍTICO: req.user ou req.user.id é undefined!');
+      return res.status(401).json({ 
+        error: 'Usuário não autenticado',
+        details: 'Estrutura do usuário não encontrada no request'
+      });
+    }
+
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
     const { nome_servico, categoria, descricao, valor, contato, localizacao } = req.body;
 
-    // Verificar campos obrigatórios
+    // Validar campos obrigatórios
     const camposObrigatorios = { nome_servico, categoria, descricao, valor, contato };
     const camposFaltantes = Object.keys(camposObrigatorios).filter(key => !camposObrigatorios[key]);
     
@@ -21,7 +35,6 @@ exports.createService = async (req, res) => {
       });
     }
 
-    // Validar valor numérico
     const valorNumerico = parseFloat(valor);
     if (isNaN(valorNumerico) || valorNumerico <= 0) {
       return res.status(400).json({ 
@@ -29,20 +42,15 @@ exports.createService = async (req, res) => {
       });
     }
 
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
-    // ✅ CORREÇÃO: Garantir que todos os campos tenham valor
+    // ✅ CORREÇÃO: Usar req.user.id
     const serviceData = {
-      id_prestador: req.userId,
+      id_prestador: req.user.id,
       nome_servico: (nome_servico || '').trim(),
       categoria: (categoria || '').trim(),
       descricao: (descricao || '').trim(),
       valor: valorNumerico,
       contato: (contato || '').trim(),
-      localizacao: (localizacao || '').trim() || null // Se vazio, vira null
+      localizacao: (localizacao || '').trim() || null
     };
 
     console.log('📤 Dados validados para criar serviço:', serviceData);
@@ -58,7 +66,6 @@ exports.createService = async (req, res) => {
 
   } catch (error) {
     console.error('❌ ERRO NO createService:', error);
-    console.error('🔍 Stack trace:', error.stack);
     
     res.status(500).json({ 
       error: 'Erro interno do servidor',
@@ -105,8 +112,12 @@ exports.searchServices = async (req, res) => {
 
 exports.getMyServices = async (req, res) => {
   try {
-    // ✅ CORREÇÃO: Usar req.userId (que é o id_prestador)
-    const services = await Service.getByPrestador(req.userId);
+    // ✅ CORREÇÃO: Usar req.user.id em vez de req.userId
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ error: 'Usuário não autenticado' });
+    }
+    
+    const services = await Service.getByPrestador(req.user.id);
     res.json({ services });
   } catch (error) {
     console.error('Erro ao buscar meus serviços:', error);
@@ -117,7 +128,13 @@ exports.getMyServices = async (req, res) => {
 exports.deleteService = async (req, res) => {
   try {
     const { id } = req.params;
-    const deleted = await Service.delete(id, req.userId);
+    
+    // ✅ CORREÇÃO: Usar req.user.id em vez de req.userId
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ error: 'Usuário não autenticado' });
+    }
+    
+    const deleted = await Service.delete(id, req.user.id);
 
     if (!deleted) {
       return res.status(404).json({ error: 'Serviço não encontrado ou não autorizado' });

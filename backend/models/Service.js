@@ -2,50 +2,72 @@ const db = require('../config/database');
 
 class Service {
   static async create(serviceData) {
-    try {
-      console.log('📝 MODEL SERVICE - Criando serviço com dados:', serviceData);
-      
-      // ✅ CORREÇÃO: Usar os nomes EXATOS das colunas da sua tabela
-      const { id_prestador, nome_servico, categoria, descricao, valor, contato, localizacao } = serviceData;
-      
-      const sql = `
-        INSERT INTO servicos (id_prestador, nome_servico, categoria, descricao, valor, contato, localizacao, criado_em) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
-      `;
-      
-      console.log('🔍 SQL:', sql);
-      console.log('📊 Valores:', [id_prestador, nome_servico, categoria, descricao, valor, contato, localizacao]);
-      
-      const [result] = await db.execute(sql, [
-        id_prestador, 
-        nome_servico, 
-        categoria, 
-        descricao, 
-        valor, 
-        contato, 
-        localizacao
-      ]);
-      
-      const newService = {
-        id: result.insertId,
-        id_prestador,
-        nome_servico,
-        categoria,
-        descricao,
-        valor,
-        contato,
-        localizacao,
-        criado_em: new Date()
-      };
-      
-      console.log('✅ MODEL - Serviço criado no banco:', newService);
-      return newService;
-      
-    } catch (error) {
-      console.error('❌ MODEL - Erro ao criar serviço:', error);
-      throw error;
-    }
+  try {
+    console.log('📝 MODEL SERVICE - Criando serviço com dados:', serviceData);
+    
+    // ✅ CORREÇÃO: Garantir que NENHUM campo seja undefined
+    const { 
+      id_prestador, 
+      nome_servico, 
+      categoria, 
+      descricao, 
+      valor, 
+      contato, 
+      localizacao 
+    } = serviceData;
+    
+    // ✅ CORREÇÃO CRÍTICA: Converter undefined para null
+    const safeIdPrestador = id_prestador ?? null;
+    const safeNomeServico = nome_servico ?? null;
+    const safeCategoria = categoria ?? null;
+    const safeDescricao = descricao ?? null;
+    const safeValor = valor ?? null;
+    const safeContato = contato ?? null;
+    const safeLocalizacao = localizacao ?? null;
+    
+    console.log('🛡️ Valores seguros para SQL:', {
+      safeIdPrestador, safeNomeServico, safeCategoria, 
+      safeDescricao, safeValor, safeContato, safeLocalizacao
+    });
+    
+    const sql = `
+      INSERT INTO servicos (id_prestador, nome_servico, categoria, descricao, valor, contato, localizacao, criado_em) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
+    `;
+    
+    console.log('🔍 SQL:', sql);
+    
+    const [result] = await db.execute(sql, [
+      safeIdPrestador, 
+      safeNomeServico, 
+      safeCategoria, 
+      safeDescricao, 
+      safeValor, 
+      safeContato, 
+      safeLocalizacao
+    ]);
+    
+    const newService = {
+      id: result.insertId,
+      id_prestador: safeIdPrestador,
+      nome_servico: safeNomeServico,
+      categoria: safeCategoria,
+      descricao: safeDescricao,
+      valor: safeValor,
+      contato: safeContato,
+      localizacao: safeLocalizacao,
+      criado_em: new Date()
+    };
+    
+    console.log('✅ MODEL - Serviço criado no banco:', newService);
+    return newService;
+    
+  } catch (error) {
+    console.error('❌ MODEL - Erro ao criar serviço:', error);
+    console.error('🔍 Stack trace:', error.stack);
+    throw error;
   }
+}
 
   static async getAll() {
     try {

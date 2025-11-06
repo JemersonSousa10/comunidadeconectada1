@@ -7,25 +7,45 @@ exports.createService = async (req, res) => {
     console.log('📦 Body recebido:', req.body);
     console.log('👤 UserId do token:', req.userId);
 
+    // ✅ CORREÇÃO: Validação mais rigorosa dos campos
+    const { nome_servico, categoria, descricao, valor, contato, localizacao } = req.body;
+
+    // Verificar campos obrigatórios
+    const camposObrigatorios = { nome_servico, categoria, descricao, valor, contato };
+    const camposFaltantes = Object.keys(camposObrigatorios).filter(key => !camposObrigatorios[key]);
+    
+    if (camposFaltantes.length > 0) {
+      return res.status(400).json({ 
+        error: 'Campos obrigatórios faltando', 
+        campos: camposFaltantes 
+      });
+    }
+
+    // Validar valor numérico
+    const valorNumerico = parseFloat(valor);
+    if (isNaN(valorNumerico) || valorNumerico <= 0) {
+      return res.status(400).json({ 
+        error: 'Valor deve ser um número positivo' 
+      });
+    }
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { nome_servico, categoria, descricao, valor, contato, localizacao } = req.body;
-
-    // ✅ CORREÇÃO: Usar os nomes EXATOS das colunas
+    // ✅ CORREÇÃO: Garantir que todos os campos tenham valor
     const serviceData = {
-      id_prestador: req.userId, // ✅ id_prestador em vez de usuario_id
-      nome_servico: nome_servico, // ✅ nome_servico em vez de nome
-      categoria: categoria,
-      descricao: descricao,
-      valor: parseFloat(valor), // ✅ valor em vez de preco
-      contato: contato,
-      localizacao: localizacao || null
+      id_prestador: req.userId,
+      nome_servico: (nome_servico || '').trim(),
+      categoria: (categoria || '').trim(),
+      descricao: (descricao || '').trim(),
+      valor: valorNumerico,
+      contato: (contato || '').trim(),
+      localizacao: (localizacao || '').trim() || null // Se vazio, vira null
     };
 
-    console.log('📤 Dados mapeados para criar serviço:', serviceData);
+    console.log('📤 Dados validados para criar serviço:', serviceData);
 
     const service = await Service.create(serviceData);
     

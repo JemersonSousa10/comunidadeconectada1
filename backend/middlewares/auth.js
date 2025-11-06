@@ -9,9 +9,18 @@ const auth = (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // ✅ Isso é importante - deve ser req.user
+    
+    // ✅ CORREÇÃO CRÍTICA: Estrutura correta do req.user
+    req.user = {
+      id: decoded.id,      // ✅ AGORA VEM DO TOKEN CORRETO
+      email: decoded.email,
+      tipo: decoded.tipo
+    };
+    
+    console.log('🔐 Usuário autenticado no middleware:', req.user);
     next();
   } catch (error) {
+    console.error('❌ Erro na autenticação:', error);
     res.status(401).json({ error: 'Token inválido' });
   }
 };

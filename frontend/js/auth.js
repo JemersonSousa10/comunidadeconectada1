@@ -3,6 +3,13 @@ window.API_BASE_URL = API_BASE_URL;
 
 console.log('✅ API_BASE_URL configurada:', API_BASE_URL);
 
+window.auth = {
+    isLoggedIn: isLoggedIn,
+    getCurrentUser: getCurrentUser,
+    handleLogout: handleLogout,
+    requirePrestador: requirePrestador
+};
+
 // Elementos globais
 let currentUser = null;
 

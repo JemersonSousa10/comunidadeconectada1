@@ -3,38 +3,47 @@ const { validationResult } = require('express-validator');
 
 exports.createService = async (req, res) => {
   try {
+    console.log('=== 🎯 CREATE SERVICE - INICIANDO ===');
+    console.log('📦 Body recebido:', req.body);
+    console.log('👤 UserId do token:', req.userId);
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    console.log('📥 Dados recebidos:', req.body);
-    console.log('👤 Usuário autenticado:', req.user);
+    const { nome_servico, categoria, descricao, valor, contato, localizacao } = req.body;
 
-    // ✅ CORREÇÃO: Usar usuario_id e mapear campos corretamente
+    // ✅ CORREÇÃO: Usar os nomes EXATOS das colunas
     const serviceData = {
-      usuario_id: req.user.id,
-      nome: req.body.nome_servico, // Mapear nome_servico → nome
-      categoria: req.body.categoria,
-      descricao: req.body.descricao,
-      preco: req.body.valor, // Mapear valor → preco
-      contato: req.body.contato,
-      localizacao: req.body.localizacao
+      id_prestador: req.userId, // ✅ id_prestador em vez de usuario_id
+      nome_servico: nome_servico, // ✅ nome_servico em vez de nome
+      categoria: categoria,
+      descricao: descricao,
+      valor: parseFloat(valor), // ✅ valor em vez de preco
+      contato: contato,
+      localizacao: localizacao || null
     };
 
-    console.log('📦 Dados do serviço processados:', serviceData);
+    console.log('📤 Dados mapeados para criar serviço:', serviceData);
 
     const service = await Service.create(serviceData);
     
-    console.log('✅ Serviço criado no banco:', service);
+    console.log('✅ Serviço criado com sucesso!');
     
     res.status(201).json({
       message: 'Serviço criado com sucesso',
-      service
+      service: service
     });
+
   } catch (error) {
-    console.error('❌ Erro ao criar serviço:', error);
-    res.status(500).json({ error: 'Erro interno do servidor' });
+    console.error('❌ ERRO NO createService:', error);
+    console.error('🔍 Stack trace:', error.stack);
+    
+    res.status(500).json({ 
+      error: 'Erro interno do servidor',
+      details: error.message
+    });
   }
 };
 
@@ -76,7 +85,8 @@ exports.searchServices = async (req, res) => {
 
 exports.getMyServices = async (req, res) => {
   try {
-    const services = await Service.getByPrestador(req.user.id);
+    // ✅ CORREÇÃO: Usar req.userId (que é o id_prestador)
+    const services = await Service.getByPrestador(req.userId);
     res.json({ services });
   } catch (error) {
     console.error('Erro ao buscar meus serviços:', error);
@@ -87,7 +97,7 @@ exports.getMyServices = async (req, res) => {
 exports.deleteService = async (req, res) => {
   try {
     const { id } = req.params;
-    const deleted = await Service.delete(id, req.user.id);
+    const deleted = await Service.delete(id, req.userId);
 
     if (!deleted) {
       return res.status(404).json({ error: 'Serviço não encontrado ou não autorizado' });

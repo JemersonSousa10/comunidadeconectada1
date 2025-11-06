@@ -2,71 +2,128 @@ const db = require('../config/database');
 
 class Service {
   static async create(serviceData) {
-    const { usuario_id, nome, categoria, descricao, preco, contato, localizacao } = serviceData;
-    
-    const sql = `
-      INSERT INTO servicos (usuario_id, nome, categoria, descricao, preco, contato, localizacao, data_criacao) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
-    `;
-    
-    const [result] = await db.execute(sql, [
-      usuario_id, nome, categoria, descricao, preco, contato, localizacao
-    ]);
-    
-    return { id: result.insertId, ...serviceData };
+    try {
+      console.log('📝 MODEL SERVICE - Criando serviço com dados:', serviceData);
+      
+      // ✅ CORREÇÃO: Usar os nomes EXATOS das colunas da sua tabela
+      const { id_prestador, nome_servico, categoria, descricao, valor, contato, localizacao } = serviceData;
+      
+      const sql = `
+        INSERT INTO servicos (id_prestador, nome_servico, categoria, descricao, valor, contato, localizacao, criado_em) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
+      `;
+      
+      console.log('🔍 SQL:', sql);
+      console.log('📊 Valores:', [id_prestador, nome_servico, categoria, descricao, valor, contato, localizacao]);
+      
+      const [result] = await db.execute(sql, [
+        id_prestador, 
+        nome_servico, 
+        categoria, 
+        descricao, 
+        valor, 
+        contato, 
+        localizacao
+      ]);
+      
+      const newService = {
+        id: result.insertId,
+        id_prestador,
+        nome_servico,
+        categoria,
+        descricao,
+        valor,
+        contato,
+        localizacao,
+        criado_em: new Date()
+      };
+      
+      console.log('✅ MODEL - Serviço criado no banco:', newService);
+      return newService;
+      
+    } catch (error) {
+      console.error('❌ MODEL - Erro ao criar serviço:', error);
+      throw error;
+    }
   }
 
   static async getAll() {
-    const sql = `
-      SELECT s.*, u.nome as prestador_nome 
-      FROM servicos s 
-      JOIN usuarios u ON s.usuario_id = u.id 
-      ORDER BY s.data_criacao DESC
-    `;
-    const [rows] = await db.execute(sql);
-    return rows;
+    try {
+      // ✅ CORREÇÃO: Usar nome_servico em vez de nome
+      const sql = `
+        SELECT s.*, u.nome as prestador_nome 
+        FROM servicos s 
+        JOIN usuarios u ON s.id_prestador = u.id 
+        ORDER BY s.criado_em DESC
+      `;
+      const [rows] = await db.execute(sql);
+      return rows;
+    } catch (error) {
+      console.error('Erro ao buscar serviços:', error);
+      throw error;
+    }
   }
 
   static async getByCategory(categoria) {
-    const sql = `
-      SELECT s.*, u.nome as prestador_nome 
-      FROM servicos s 
-      JOIN usuarios u ON s.usuario_id = u.id 
-      WHERE s.categoria = ? 
-      ORDER BY s.data_criacao DESC
-    `;
-    const [rows] = await db.execute(sql, [categoria]);
-    return rows;
+    try {
+      const sql = `
+        SELECT s.*, u.nome as prestador_nome 
+        FROM servicos s 
+        JOIN usuarios u ON s.id_prestador = u.id 
+        WHERE s.categoria = ? 
+        ORDER BY s.criado_em DESC
+      `;
+      const [rows] = await db.execute(sql, [categoria]);
+      return rows;
+    } catch (error) {
+      console.error('Erro ao buscar serviços por categoria:', error);
+      throw error;
+    }
   }
 
   static async search(query) {
-    const sql = `
-      SELECT s.*, u.nome as prestador_nome 
-      FROM servicos s 
-      JOIN usuarios u ON s.usuario_id = u.id 
-      WHERE s.nome LIKE ? OR s.descricao LIKE ? 
-      ORDER BY s.data_criacao DESC
-    `;
-    const [rows] = await db.execute(sql, [`%${query}%`, `%${query}%`]);
-    return rows;
+    try {
+      const sql = `
+        SELECT s.*, u.nome as prestador_nome 
+        FROM servicos s 
+        JOIN usuarios u ON s.id_prestador = u.id 
+        WHERE s.nome_servico LIKE ? OR s.descricao LIKE ? 
+        ORDER BY s.criado_em DESC
+      `;
+      const [rows] = await db.execute(sql, [`%${query}%`, `%${query}%`]);
+      return rows;
+    } catch (error) {
+      console.error('Erro ao buscar serviços:', error);
+      throw error;
+    }
   }
 
-  static async getByPrestador(usuario_id) {
-    const sql = `
-      SELECT s.*, u.nome as prestador_nome 
-      FROM servicos s 
-      JOIN usuarios u ON s.usuario_id = u.id 
-      WHERE s.usuario_id = ? 
-      ORDER BY s.data_criacao DESC
-    `;
-    const [rows] = await db.execute(sql, [usuario_id]);
-    return rows;
+  static async getByPrestador(id_prestador) {
+    try {
+      const sql = `
+        SELECT s.*, u.nome as prestador_nome 
+        FROM servicos s 
+        JOIN usuarios u ON s.id_prestador = u.id 
+        WHERE s.id_prestador = ? 
+        ORDER BY s.criado_em DESC
+      `;
+      const [rows] = await db.execute(sql, [id_prestador]);
+      return rows;
+    } catch (error) {
+      console.error('Erro ao buscar serviços do prestador:', error);
+      throw error;
+    }
   }
 
-  static async delete(id, usuario_id) {
-    const sql = 'DELETE FROM servicos WHERE id = ? AND usuario_id = ?';
-    const [result] = await db.execute(sql, [id, usuario_id]);
-    return result.affectedRows > 0;
+  static async delete(id, id_prestador) {
+    try {
+      const sql = 'DELETE FROM servicos WHERE id = ? AND id_prestador = ?';
+      const [result] = await db.execute(sql, [id, id_prestador]);
+      return result.affectedRows > 0;
+    } catch (error) {
+      console.error('Erro ao deletar serviço:', error);
+      throw error;
+    }
   }
 }
 

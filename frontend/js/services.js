@@ -113,34 +113,35 @@ useFallbackWithMessage(errorMsg) {
     `;
 },
     
-    displayServices(servicos) {
-        const grid = document.getElementById('servicesGrid');
-        const noServices = document.getElementById('noServicesMessage');
-        
-        if (servicos.length === 0) {
-            grid.style.display = 'none';
-            noServices.style.display = 'block';
-            return;
-        }
-        
-        grid.style.display = 'grid';
-        noServices.style.display = 'none';
-        
-        grid.innerHTML = servicos.map(servico => `
-            <div class="servico-card" role="listitem">
-                <h3>${servico.nome_servico}</h3>
-                <p>${servico.descricao}</p>
-                <div class="servico-meta">
-                    <span class="categoria">${servico.categoria}</span>
-                    <span class="preco">R$ ${servico.valor}</span>
-                </div>
-                <p class="prestador">Por: ${servico.prestador_nome}</p>
-                <button onclick="services.verDetalhes(${servico.id})" class="btn btn-outline">
-                    Ver Detalhes
-                </button>
+  displayServices(servicos) {
+    const grid = document.getElementById('servicesGrid');
+    const noServices = document.getElementById('noServicesMessage');
+    
+    if (servicos.length === 0) {
+        grid.style.display = 'none';
+        noServices.style.display = 'block';
+        return;
+    }
+    
+    grid.style.display = 'grid';
+    noServices.style.display = 'none';
+    
+    // ✅ CORREÇÃO: Usar nome_servico em vez de nome_servico (já está correto)
+    grid.innerHTML = servicos.map(servico => `
+        <div class="servico-card" role="listitem">
+            <h3>${servico.nome_servico}</h3>
+            <p>${servico.descricao}</p>
+            <div class="servico-meta">
+                <span class="categoria">${servico.categoria}</span>
+                <span class="preco">R$ ${servico.valor}</span>
             </div>
-        `).join('');
-    },
+            <p class="prestador">Por: ${servico.prestador_nome}</p>
+            <button onclick="services.verDetalhes(${servico.id})" class="btn btn-outline">
+                Ver Detalhes
+            </button>
+        </div>
+    `).join('');
+},
     
     async verDetalhes(servicoId) {
     try {

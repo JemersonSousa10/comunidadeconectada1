@@ -2,16 +2,35 @@ const API_BASE = window.API_BASE_URL || 'https://comunidade-conectada-backend.on
 console.log('🔗 API_BASE:', API_BASE);
 
 const services = {
-  async loadServices() {
+async loadServices() {
     try {
         console.log('🔍 Iniciando carregamento de serviços...');
         this.showLoading(true);
+        
+        // Obter valores dos filtros
+        const search = document.getElementById('searchInput').value;
+        const category = document.getElementById('categoryFilter').value;
+        const sort = document.getElementById('sortFilter').value;
+        
+        // Construir URL com parâmetros de busca e filtros
+        let url = `${API_BASE}/services`;
+        const params = new URLSearchParams();
+        
+        if (search) params.append('q', search);
+        if (category) params.append('categoria', category);
+        if (sort) params.append('ordenar', sort);
+        
+        if (params.toString()) {
+            url += `?${params.toString()}`;
+        }
+        
+        console.log('🌐 URL completa:', url);
         
         const token = localStorage.getItem('token');
         console.log('🔐 Token:', token ? '✅ Presente' : '❌ Ausente');
         
         // Fazer requisição para o backend
-        const response = await fetch(`${API_BASE}/services`, {
+        const response = await fetch(url, {
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
@@ -29,9 +48,12 @@ const services = {
         const data = await response.json();
         console.log('📦 Resposta completa:', data);
         
-        // ✅ CORREÇÃO: Extrair o array de serviços da propriedade 'services'
-        const servicos = data.services || data;
+        // ✅ CORREÇÃO DEFINITIVA: O backend retorna {services: array}
+        const servicos = data.services; // Extrai o array da propriedade 'services'
         console.log('✅ Serviços extraídos:', servicos);
+        console.log('🔍 Tipo de servicos:', typeof servicos);
+        console.log('🔍 É array?', Array.isArray(servicos));
+        console.log('📊 Quantidade de serviços:', servicos.length);
         
         if (servicos && Array.isArray(servicos)) {
             this.displayServices(servicos);
